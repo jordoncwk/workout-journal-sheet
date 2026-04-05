@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Workout Journal</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f2f2f7; color: #1c1c1e; font-size: 17px; }
+
+  /* Safe area / pages */
+  .page { display: none; padding-bottom: calc(90px + env(safe-area-inset-bottom)); padding-top: env(safe-area-inset-top); }
+  .page.active { display: block; }
+
+  /* Bottom nav — sits above home indicator */
+  #bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-top: 1px solid #d1d1d6;
+    display: flex;
+    padding-bottom: env(safe-area-inset-bottom);
+    z-index: 100;
+  }
+  .nav-btn {
+    flex: 1; border: none; background: none; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 4px; padding: 10px 0 8px;
+    font-size: 11px; font-weight: 500; color: #8e8e93; letter-spacing: 0.2px;
+  }
+  .nav-btn .nav-icon { font-size: 28px; line-height: 1; }
+  .nav-btn.active { color: #4a86e8; }
+
+  /* Header */
+  .header {
+    background: #4a86e8; color: white;
+    padding: 18px 16px;
+    padding-top: calc(18px + env(safe-area-inset-top));
+    display: flex; align-items: center; gap: 12px;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .header h1 { font-size: 22px; font-weight: 700; flex: 1; }
+  .back-btn { background: none; border: none; color: white; font-size: 28px; cursor: pointer; padding: 4px 10px; line-height: 1; min-width: 44px; }
+
+  /* Buttons */
+  .btn { padding: 16px 24px; border: none; border-radius: 14px; font-size: 17px; font-weight: 600; cursor: pointer; min-height: 54px; }
+  .btn-primary { background: #4a86e8; color: white; }
+  .btn-danger { background: #e53935; color: white; }
+  .btn-ghost { background: transparent; color: #4a86e8; border: 2px solid #4a86e8; }
+  .btn-sm { padding: 11px 18px; font-size: 15px; min-height: 44px; }
+  .btn-full { width: 100%; margin-top: 10px; }
+
+  /* Cards & layout */
+  .card { background: white; border-radius: 16px; margin: 12px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); }
+  .loading { text-align: center; padding: 80px 20px; color: #8e8e93; font-size: 17px; }
+  .empty { text-align: center; padding: 80px 20px; color: #aeaeb2; font-size: 17px; line-height: 1.6; }
+  select { width: 100%; padding: 16px; font-size: 17px; border: 1.5px solid #d1d1d6; border-radius: 12px; background: white; min-height: 54px; color: #1c1c1e; -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; padding-right: 44px; }
+
+  /* Workout */
+  .timer { font-size: 17px; font-variant-numeric: tabular-nums; background: rgba(255,255,255,0.25); padding: 6px 14px; border-radius: 20px; font-weight: 600; }
+  .wv { display: none; }
+  .wv.active { display: block; }
+  .ex-card { background: white; border-radius: 16px; margin: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); overflow: hidden; }
+  .ex-header { display: flex; align-items: center; padding: 18px 16px; gap: 14px; }
+  .ex-border { width: 5px; height: 48px; border-radius: 3px; flex-shrink: 0; }
+  .ex-name { font-size: 19px; font-weight: 700; flex: 1; }
+  .ex-body { padding: 0 16px 18px; }
+  .best-weight { font-size: 15px; color: #8e8e93; margin-bottom: 14px; }
+  .set-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .set-num { font-size: 16px; color: #aeaeb2; width: 24px; text-align: center; font-weight: 600; }
+  .set-input { flex: 1; border: 1.5px solid #d1d1d6; border-radius: 12px; padding: 14px 8px; font-size: 20px; text-align: center; min-height: 52px; }
+  .set-input.logged { background: #e8f5e9; color: #2e7d32; font-weight: 700; border-color: #a5d6a7; }
+  .set-label { font-size: 13px; color: #8e8e93; text-align: center; font-weight: 500; }
+  .log-btn { padding: 14px 18px; background: #4a86e8; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; white-space: nowrap; min-height: 52px; }
+  .log-btn.logged { background: #34a853; }
+  .add-ex-row { display: flex; gap: 10px; margin: 10px 12px; }
+  .add-ex-row input { flex: 1; border: 1.5px solid #d1d1d6; border-radius: 12px; padding: 14px; font-size: 17px; min-height: 52px; }
+  .summary-stat { display: flex; justify-content: space-between; align-items: center; padding: 18px 0; border-bottom: 1px solid #f2f2f7; font-size: 17px; }
+  .summary-stat:last-child { border-bottom: none; }
+  .summary-val { font-weight: 700; color: #4a86e8; font-size: 19px; }
+
+  /* Templates */
+  .template-name { font-size: 19px; font-weight: 700; }
+  .template-sub { font-size: 15px; color: #8e8e93; margin-top: 4px; }
+  .exercise-row { display: flex; align-items: center; gap: 10px; padding: 14px 0; border-bottom: 1px solid #f2f2f7; }
+  .exercise-row:last-child { border-bottom: none; }
+  .exercise-name-input { flex: 1; border: 1.5px solid #d1d1d6; border-radius: 10px; padding: 12px; font-size: 17px; min-height: 48px; }
+  .num-input { width: 60px; border: 1.5px solid #d1d1d6; border-radius: 10px; padding: 12px 4px; font-size: 17px; text-align: center; min-height: 48px; }
+  .label-sm { font-size: 12px; color: #8e8e93; text-align: center; margin-bottom: 3px; font-weight: 500; }
+  .section-label { font-size: 13px; color: #8e8e93; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; margin-bottom: 12px; }
+  .add-exercise-row { display: flex; gap: 10px; margin-top: 14px; }
+  .add-exercise-row input { flex: 1; border: 1.5px solid #d1d1d6; border-radius: 10px; padding: 13px; font-size: 17px; min-height: 50px; }
+  .name-input-big { width: 100%; border: 1.5px solid #d1d1d6; border-radius: 12px; padding: 16px; font-size: 19px; margin-bottom: 18px; min-height: 56px; }
+  .fab { position: fixed; bottom: calc(90px + env(safe-area-inset-bottom)); right: 22px; width: 64px; height: 64px; border-radius: 50%; background: #4a86e8; color: white; font-size: 34px; border: none; cursor: pointer; box-shadow: 0 4px 16px rgba(74,134,232,0.45); display: none; align-items: center; justify-content: center; z-index: 50; }
+
+  /* History */
+  .session-header { padding: 18px 16px; display: flex; align-items: center; cursor: pointer; min-height: 72px; }
+  .session-name { font-size: 18px; font-weight: 700; flex: 1; }
+  .session-meta { font-size: 14px; color: #8e8e93; margin-top: 4px; }
+  .session-body { border-top: 1px solid #f2f2f7; padding: 16px; display: none; }
+  .session-body.open { display: block; }
+  .ex-group { margin-bottom: 16px; }
+  .ex-group-name { font-size: 16px; font-weight: 700; color: #3a3a3c; margin-bottom: 8px; }
+  .set-line { font-size: 16px; color: #48484a; padding: 5px 0; }
+  .chevron { color: #c7c7cc; font-size: 22px; transition: transform 0.2s; margin-left: 10px; }
+  .chevron.open { transform: rotate(90deg); }
+
+  /* Progress */
+  .pr-row { display: flex; align-items: center; justify-content: space-between; padding: 17px 0; border-bottom: 1px solid #f2f2f7; min-height: 56px; }
+  .pr-row:last-child { border-bottom: none; }
+  .pr-name { font-size: 17px; }
+  .pr-val { font-size: 18px; font-weight: 700; color: #4a86e8; }
+</style>
+</head>
+<body>
+
+<!-- ── WORKOUT PAGE ──────────────────────────────────────────────────────── -->
+<div id="page-workout" class="page active">
+  <div id="wv-loading" class="wv active loading">Loading...</div>
+
+  <div id="wv-select" class="wv">
+    <div class="header"><h1>Start Workout</h1></div>
+    <div style="padding:16px;">
+      <div style="font-size:14px;color:#888;margin-bottom:8px;">Choose a template</div>
+      <select id="template-select"></select>
+      <button class="btn btn-primary btn-full" style="margin-top:16px;" onclick="startWorkout()">Start</button>
+    </div>
+  </div>
+
+  <div id="wv-resume" class="wv">
+    <div class="header"><h1>Resume Workout?</h1></div>
+    <div style="padding:16px;">
+      <div class="card">
+        <p style="font-size:15px;margin-bottom:16px;">You have an unfinished workout. Resume it or start fresh?</p>
+        <button class="btn btn-primary btn-full" onclick="resumeWorkout()">Resume</button>
+        <button class="btn btn-ghost btn-full" style="margin-top:8px;" onclick="discardAndShowSelect()">Discard &amp; Start New</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="wv-workout" class="wv">
+    <div class="header">
+      <h1 id="workout-title">Workout</h1>
+      <div class="timer" id="timer">0:00</div>
+    </div>
+    <div id="exercises-container"></div>
+    <div class="add-ex-row">
+      <input type="text" id="add-ex-input" placeholder="Add exercise...">
+      <button class="btn btn-ghost btn-sm" onclick="addFreeformExercise()">Add</button>
+    </div>
+    <div style="padding:16px;">
+      <button class="btn btn-danger btn-full" onclick="finishWorkout()">Finish Workout</button>
+    </div>
+  </div>
+
+  <div id="wv-summary" class="wv">
+    <div class="header"><h1>Workout Complete</h1></div>
+    <div style="padding:16px;">
+      <div class="card">
+        <div class="summary-stat"><span>Duration</span><span class="summary-val" id="s-duration">-</span></div>
+        <div class="summary-stat"><span>Exercises</span><span class="summary-val" id="s-exercises">-</span></div>
+        <div class="summary-stat"><span>Total Sets</span><span class="summary-val" id="s-sets">-</span></div>
+        <div class="summary-stat"><span>Total Volume</span><span class="summary-val" id="s-volume">-</span></div>
+      </div>
+      <button class="btn btn-primary btn-full" style="margin-top:16px;" onclick="workoutDone()">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TEMPLATES PAGE ────────────────────────────────────────────────────── -->
+<div id="page-templates" class="page">
+  <div id="tpl-list">
+    <div class="header"><h1>Templates</h1></div>
+    <div id="templates-container"><div class="loading">Loading...</div></div>
+  </div>
+  <div id="tpl-edit" style="display:none">
+    <div class="header">
+      <button class="back-btn" onclick="showTemplateList()">&#8592;</button>
+      <h1 id="edit-title">Edit Template</h1>
+      <button class="btn btn-primary btn-sm" onclick="saveTemplate()">Save</button>
+    </div>
+    <div style="padding:12px;">
+      <input type="text" id="template-name-input" class="name-input-big" placeholder="Template name (e.g. Upper Day)">
+      <div class="card">
+        <div class="section-label">Exercises</div>
+        <div id="exercises-list"></div>
+        <div class="add-exercise-row">
+          <input type="text" id="new-exercise-input" placeholder="Add exercise..." onkeydown="if(event.key==='Enter')addExercise()">
+          <button class="btn btn-primary btn-sm" onclick="addExercise()">Add</button>
+        </div>
+      </div>
+      <div style="margin:12px 0;" id="delete-btn-container"></div>
+    </div>
+  </div>
+  <button class="fab" id="fab-btn" onclick="showNewTemplate()">+</button>
+</div>
+
+<!-- ── HISTORY PAGE ──────────────────────────────────────────────────────── -->
+<div id="page-history" class="page">
+  <div class="header"><h1>History</h1></div>
+  <div id="history-container"><div class="loading">Loading...</div></div>
+</div>
+
+<!-- ── PROGRESS PAGE ─────────────────────────────────────────────────────── -->
+<div id="page-progress" class="page">
+  <div class="header"><h1>Progress</h1></div>
+  <div id="progress-container"><div class="loading">Loading...</div></div>
+</div>
+
+<!-- ── BOTTOM NAV ────────────────────────────────────────────────────────── -->
+<nav id="bottom-nav">
+  <button class="nav-btn active" id="nav-workout" onclick="navTo('workout')">
+    <span class="nav-icon">💪</span>Workout
+  </button>
+  <button class="nav-btn" id="nav-templates" onclick="navTo('templates')">
+    <span class="nav-icon">📋</span>Templates
+  </button>
+  <button class="nav-btn" id="nav-history" onclick="navTo('history')">
+    <span class="nav-icon">📅</span>History
+  </button>
+  <button class="nav-btn" id="nav-progress" onclick="navTo('progress')">
+    <span class="nav-icon">📈</span>Progress
+  </button>
+</nav>
+
+<script>
+// ── Navigation ────────────────────────────────────────────────────────────────
+const PAGES = ['workout', 'templates', 'history', 'progress'];
+
+function navTo(page) {
+  PAGES.forEach(function(p) {
+    document.getElementById('page-' + p).classList.toggle('active', p === page);
+    document.getElementById('nav-' + p).classList.toggle('active', p === page);
+  });
+  var fab = document.getElementById('fab-btn');
+  var inEdit = document.getElementById('tpl-edit').style.display === 'block';
+  fab.style.display = (page === 'templates' && !inEdit) ? 'flex' : 'none';
+  if (page === 'templates' && !templatesLoaded) loadTemplates();
+  if (page === 'history') { historyLoaded = false; loadHistory(); }
+  if (page === 'progress') { progressLoaded = false; loadProgress(); }
+}
+
+// ── Workout ───────────────────────────────────────────────────────────────────
+var wState = null;
+var timerInterval = null;
+var bestWeightCache = {};
+var expandedExercises = {};
+var templatesLoaded = false;
+var historyLoaded = false;
+var progressLoaded = false;
+
+function showWV(id) {
+  ['wv-loading','wv-select','wv-resume','wv-workout','wv-summary'].forEach(function(v) {
+    document.getElementById(v).classList.toggle('active', v === id);
+  });
+}
+
+function initWorkout() {
+  showWV('wv-loading');
+  google.script.run
+    .withSuccessHandler(function(data) {
+      var sel = document.getElementById('template-select');
+      sel.innerHTML = '<option value="">Free-form</option>';
+      data.templates.forEach(function(t) {
+        var opt = document.createElement('option');
+        opt.value = t.id;
+        opt.textContent = t.name;
+        opt.dataset.exercises = JSON.stringify(t.exercises);
+        sel.appendChild(opt);
+      });
+      if (data.activeWorkout) {
+        wState = data.activeWorkout;
+        showWV('wv-resume');
+      } else {
+        showWV('wv-select');
+      }
+    })
+    .withFailureHandler(function(e) { document.getElementById('wv-loading').textContent = 'Error: ' + e.message; })
+    .getWorkoutInitialData();
+}
+
+function startWorkout() {
+  var sel = document.getElementById('template-select');
+  var templateId = sel.value ? parseInt(sel.value) : null;
+  var templateName = sel.value ? sel.options[sel.selectedIndex].text : 'Free-form';
+  var exercises = sel.value ? JSON.parse(sel.options[sel.selectedIndex].dataset.exercises) : [];
+  showWV('wv-loading');
+  google.script.run
+    .withSuccessHandler(function(s) {
+      wState = s;
+      loadBestWeights(function() { renderWorkout(); });
+    })
+    .withFailureHandler(function(e) { alert('Error: ' + e.message); })
+    .startWorkout(templateId, templateName, exercises);
+}
+
+function resumeWorkout() {
+  loadBestWeights(function() { renderWorkout(); });
+}
+
+function discardAndShowSelect() {
+  google.script.run.withSuccessHandler(function() {
+    wState = null;
+    showWV('wv-select');
+  }).discardActiveWorkout();
+}
+
+function loadBestWeights(cb) {
+  var names = [];
+  wState.exercises.forEach(function(e) {
+    if (names.indexOf(e.exercise_name) === -1) names.push(e.exercise_name);
+  });
+  var remaining = names.length;
+  if (remaining === 0) { cb(); return; }
+  names.forEach(function(name) {
+    google.script.run
+      .withSuccessHandler(function(w) { bestWeightCache[name] = w; if (--remaining === 0) cb(); })
+      .withFailureHandler(function() { if (--remaining === 0) cb(); })
+      .getBestWeightForExercise(name);
+  });
+}
+
+function renderWorkout() {
+  document.getElementById('workout-title').textContent = wState.templateName || 'Workout';
+  expandedExercises = {};
+  expandedExercises[0] = true;
+  startTimer();
+  renderExercises();
+  showWV('wv-workout');
+}
+
+function startTimer() {
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(function() {
+    var elapsed = Math.floor((Date.now() - wState.startedAt) / 1000);
+    var m = Math.floor(elapsed / 60), s = elapsed % 60;
+    document.getElementById('timer').textContent = m + ':' + (s < 10 ? '0' : '') + s;
+  }, 1000);
+}
+
+function renderExercises() {
+  var container = document.getElementById('exercises-container');
+  container.innerHTML = wState.exercises.map(function(ex, i) {
+    var allLogged = ex.sets.length > 0 && ex.sets.every(function(s) { return s.logged; });
+    var isOpen = !!expandedExercises[i];
+    var borderColor = allLogged ? '#34a853' : isOpen ? '#4a86e8' : '#d1d1d6';
+    var html = '<div class="ex-card">' +
+      '<div class="ex-header" onclick="toggleExercise(' + i + ')" style="cursor:pointer;">' +
+      '<div class="ex-border" style="background:' + borderColor + '"></div>' +
+      '<div style="flex:1"><div class="ex-name">' + ex.exercise_name + '</div>' +
+      (allLogged ? '<div style="font-size:13px;color:#34a853;margin-top:2px;font-weight:600;">All sets logged ✓</div>' : '') +
+      '</div>' +
+      '<span style="color:#c7c7cc;font-size:24px;margin-left:8px;">' + (isOpen ? '⌄' : '›') + '</span>' +
+      '</div>';
+
+    if (isOpen) {
+      var best = bestWeightCache[ex.exercise_name];
+      html += '<div class="ex-body">';
+      if (best !== null && best !== undefined) html += '<div class="best-weight">Previous best: ' + best + ' kg</div>';
+      html += '<div style="display:flex;gap:10px;margin-bottom:6px;">' +
+        '<div style="width:24px"></div>' +
+        '<div class="set-label" style="flex:1">Weight (kg)</div>' +
+        '<div class="set-label" style="flex:1">Reps</div>' +
+        '<div style="width:86px"></div></div>';
+      ex.sets.forEach(function(set, si) {
+        html += '<div class="set-row">' +
+          '<div class="set-num">' + (si+1) + '</div>' +
+          '<input class="set-input' + (set.logged ? ' logged' : '') + '" type="number" step="0.5" value="' + set.weight_kg + '"' +
+          ' oninput="updateSet(' + i + ',' + si + ',\'weight_kg\',this.value)" placeholder="0"' + (set.logged ? ' readonly' : '') + '>' +
+          '<input class="set-input' + (set.logged ? ' logged' : '') + '" type="number" value="' + set.reps + '"' +
+          ' oninput="updateSet(' + i + ',' + si + ',\'reps\',this.value)" placeholder="0"' + (set.logged ? ' readonly' : '') + '>' +
+          '<button class="log-btn' + (set.logged ? ' logged' : '') + '" onclick="toggleLogSet(' + i + ',' + si + ')">' +
+          (set.logged ? '✓' : 'Log') + '</button>' +
+          '<button onclick="deleteSet(' + i + ',' + si + ')" style="background:none;border:none;color:#aeaeb2;font-size:22px;padding:0 4px;cursor:pointer;min-width:28px;">✕</button>' +
+          '</div>';
+      });
+      html += '<button class="btn btn-ghost btn-full btn-sm" onclick="addSet(' + i + ')" style="margin-top:6px;">+ Add Set</button>';
+      html += '</div>';
+    }
+    html += '</div>';
+    return html;
+  }).join('');
+}
+
+function toggleExercise(i) {
+  expandedExercises[i] = !expandedExercises[i];
+  renderExercises();
+}
+
+function updateSet(exIdx, setIdx, field, value) {
+  wState.exercises[exIdx].sets[setIdx][field] = value;
+}
+
+function toggleLogSet(exIdx, setIdx) {
+  wState.exercises[exIdx].sets[setIdx].logged = !wState.exercises[exIdx].sets[setIdx].logged;
+  google.script.run.saveActiveWorkoutState(wState);
+  renderExercises();
+}
+
+function addSet(exIdx) {
+  wState.exercises[exIdx].sets.push({ weight_kg: '', reps: '', logged: false });
+  renderExercises();
+}
+
+function deleteSet(exIdx, setIdx) {
+  wState.exercises[exIdx].sets.splice(setIdx, 1);
+  google.script.run.saveActiveWorkoutState(wState);
+  renderExercises();
+}
+
+function addFreeformExercise() {
+  var input = document.getElementById('add-ex-input');
+  var name = input.value.trim();
+  if (!name) return;
+  var newIdx = wState.exercises.length;
+  wState.exercises.push({ exercise_name: name, sets: [{ weight_kg: '', reps: '', logged: false }] });
+  expandedExercises[newIdx] = true;
+  input.value = '';
+  bestWeightCache[name] = null;
+  google.script.run.withSuccessHandler(function(w) { bestWeightCache[name] = w; renderExercises(); }).getBestWeightForExercise(name);
+  renderExercises();
+}
+
+function finishWorkout() {
+  if (!confirm('Finish this workout?')) return;
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  showWV('wv-loading');
+  google.script.run
+    .withSuccessHandler(function(summary) {
+      document.getElementById('s-duration').textContent = formatDuration(summary.duration);
+      document.getElementById('s-exercises').textContent = summary.exerciseCount;
+      document.getElementById('s-sets').textContent = summary.setCount;
+      document.getElementById('s-volume').textContent = summary.totalVolume + ' kg';
+      showWV('wv-summary');
+    })
+    .withFailureHandler(function(e) { alert('Error: ' + e.message); showWV('wv-workout'); })
+    .finishWorkout(wState);
+}
+
+function workoutDone() {
+  wState = null;
+  bestWeightCache = {};
+  initWorkout();
+}
+
+function formatDuration(ms) {
+  var total = Math.floor(ms / 1000);
+  var h = Math.floor(total / 3600), m = Math.floor((total % 3600) / 60), s = total % 60;
+  if (h > 0) return h + 'h ' + m + 'm';
+  return m + 'm ' + s + 's';
+}
+
+// ── Templates ─────────────────────────────────────────────────────────────────
+var templates = [];
+var editingTemplateId = null;
+var editExercises = [];
+
+function loadTemplates() {
+  templatesLoaded = true;
+  document.getElementById('templates-container').innerHTML = '<div class="loading">Loading...</div>';
+  google.script.run
+    .withSuccessHandler(function(data) { templates = data; renderTemplateList(); })
+    .withFailureHandler(function(e) { document.getElementById('templates-container').innerHTML = '<div class="empty">Error: ' + e.message + '</div>'; })
+    .getTemplatesData();
+}
+
+function renderTemplateList() {
+  var c = document.getElementById('templates-container');
+  if (templates.length === 0) {
+    c.innerHTML = '<div class="empty">No templates yet.<br>Tap + to create one.</div>';
+    return;
+  }
+  c.innerHTML = templates.map(function(t) {
+    return '<div class="card" style="cursor:pointer;" onclick="editTemplate(' + t.id + ')">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;">' +
+      '<div><div class="template-name">' + t.name + '</div>' +
+      '<div class="template-sub">' + t.exercises.length + ' exercise' + (t.exercises.length !== 1 ? 's' : '') + '</div></div>' +
+      '<span style="color:#bbb;font-size:20px;">›</span></div></div>';
+  }).join('');
+}
+
+function editTemplate(id) {
+  var t = templates.filter(function(x) { return x.id === id; })[0];
+  editingTemplateId = id;
+  editExercises = t.exercises.map(function(e) {
+    return { exercise_name: e.exercise_name, default_sets: e.default_sets, default_reps: e.default_reps };
+  });
+  document.getElementById('template-name-input').value = t.name;
+  document.getElementById('edit-title').textContent = 'Edit Template';
+  document.getElementById('delete-btn-container').innerHTML = '<button class="btn btn-danger" style="width:100%" onclick="deleteTemplate()">Delete Template</button>';
+  renderEditExercises();
+  document.getElementById('tpl-list').style.display = 'none';
+  document.getElementById('tpl-edit').style.display = 'block';
+  document.getElementById('fab-btn').style.display = 'none';
+}
+
+function showNewTemplate() {
+  editingTemplateId = null;
+  editExercises = [];
+  document.getElementById('template-name-input').value = '';
+  document.getElementById('edit-title').textContent = 'New Template';
+  document.getElementById('delete-btn-container').innerHTML = '';
+  renderEditExercises();
+  document.getElementById('tpl-list').style.display = 'none';
+  document.getElementById('tpl-edit').style.display = 'block';
+  document.getElementById('fab-btn').style.display = 'none';
+}
+
+function renderEditExercises() {
+  var c = document.getElementById('exercises-list');
+  if (editExercises.length === 0) {
+    c.innerHTML = '<div style="color:#aaa;padding:8px 0;font-size:14px;">No exercises yet.</div>';
+    return;
+  }
+  c.innerHTML = editExercises.map(function(ex, i) {
+    return '<div class="exercise-row">' +
+      '<input class="exercise-name-input" value="' + ex.exercise_name + '" oninput="editExercises[' + i + '].exercise_name=this.value" placeholder="Exercise name">' +
+      '<div><div class="label-sm">Sets</div><input class="num-input" type="number" value="' + ex.default_sets + '" oninput="editExercises[' + i + '].default_sets=parseInt(this.value)||1"></div>' +
+      '<div><div class="label-sm">Reps</div><input class="num-input" type="number" value="' + ex.default_reps + '" oninput="editExercises[' + i + '].default_reps=parseInt(this.value)||1"></div>' +
+      '<div style="display:flex;flex-direction:column;gap:4px;">' +
+      (i > 0 ? '<button class="btn btn-ghost btn-sm" onclick="moveEx(' + i + ',-1)">↑</button>' : '<div style="height:34px"></div>') +
+      (i < editExercises.length-1 ? '<button class="btn btn-ghost btn-sm" onclick="moveEx(' + i + ',1)">↓</button>' : '<div style="height:34px"></div>') +
+      '</div>' +
+      '<button class="btn btn-danger btn-sm" onclick="removeEx(' + i + ')">✕</button>' +
+      '</div>';
+  }).join('');
+}
+
+function addExercise() {
+  var input = document.getElementById('new-exercise-input');
+  var name = input.value.trim();
+  if (!name) return;
+  editExercises.push({ exercise_name: name, default_sets: 3, default_reps: 8 });
+  input.value = '';
+  renderEditExercises();
+}
+
+function moveEx(i, dir) {
+  var j = i + dir;
+  if (j < 0 || j >= editExercises.length) return;
+  var tmp = editExercises[i]; editExercises[i] = editExercises[j]; editExercises[j] = tmp;
+  renderEditExercises();
+}
+
+function removeEx(i) {
+  editExercises.splice(i, 1);
+  renderEditExercises();
+}
+
+function saveTemplate() {
+  var name = document.getElementById('template-name-input').value.trim();
+  if (!name) { alert('Enter a template name.'); return; }
+  google.script.run
+    .withSuccessHandler(function(data) { templates = data; showTemplateList(); })
+    .withFailureHandler(function(e) { alert('Error: ' + e.message); })
+    .saveTemplate(editingTemplateId, name, editExercises);
+}
+
+function deleteTemplate() {
+  if (!confirm('Delete this template?')) return;
+  google.script.run
+    .withSuccessHandler(function(data) { templates = data; showTemplateList(); })
+    .withFailureHandler(function(e) { alert('Error: ' + e.message); })
+    .deleteTemplateById(editingTemplateId);
+}
+
+function showTemplateList() {
+  renderTemplateList();
+  document.getElementById('tpl-edit').style.display = 'none';
+  document.getElementById('tpl-list').style.display = 'block';
+  document.getElementById('fab-btn').style.display = 'flex';
+}
+
+// ── History ───────────────────────────────────────────────────────────────────
+function loadHistory() {
+  historyLoaded = true;
+  document.getElementById('history-container').innerHTML = '<div class="loading">Loading...</div>';
+  google.script.run
+    .withSuccessHandler(renderHistory)
+    .withFailureHandler(function(e) { document.getElementById('history-container').innerHTML = '<div class="empty">Error: ' + e.message + '</div>'; })
+    .getHistoryData();
+}
+
+function renderHistory(history) {
+  var c = document.getElementById('history-container');
+  if (history.length === 0) {
+    c.innerHTML = '<div class="empty">No workouts yet.<br>Complete your first workout to see history.</div>';
+    return;
+  }
+  c.innerHTML = history.map(function(w, i) {
+    var duration = formatDuration(w.finished_at - w.started_at);
+    var date = new Date(w.started_at).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+    var exerciseMap = {};
+    w.sets.forEach(function(s) { if (!exerciseMap[s.exercise_name]) exerciseMap[s.exercise_name] = []; exerciseMap[s.exercise_name].push(s); });
+    var setsHtml = Object.keys(exerciseMap).map(function(name) {
+      var exSets = exerciseMap[name].sort(function(a,b) { return a.set_number - b.set_number; });
+      return '<div class="ex-group"><div class="ex-group-name">' + name + '</div>' +
+        exSets.map(function(s) { return '<div class="set-line">Set ' + s.set_number + ': ' + s.weight_kg + ' kg × ' + s.reps + ' reps</div>'; }).join('') +
+        '</div>';
+    }).join('');
+    return '<div class="card" style="padding:0;">' +
+      '<div class="session-header" onclick="toggleHistory(' + i + ')">' +
+      '<div style="flex:1"><div class="session-name">' + w.name + '</div>' +
+      '<div class="session-meta">' + date + ' · ' + duration + ' · ' + w.sets.length + ' set' + (w.sets.length !== 1 ? 's' : '') + '</div></div>' +
+      '<span class="chevron" id="hchev-' + i + '">›</span></div>' +
+      '<div class="session-body" id="hbody-' + i + '">' + (setsHtml || '<div style="color:#aaa;font-size:14px;">No sets logged.</div>') + '</div>' +
+      '</div>';
+  }).join('');
+}
+
+function toggleHistory(i) {
+  document.getElementById('hbody-' + i).classList.toggle('open');
+  document.getElementById('hchev-' + i).classList.toggle('open');
+}
+
+// ── Progress ──────────────────────────────────────────────────────────────────
+function loadProgress() {
+  progressLoaded = true;
+  document.getElementById('progress-container').innerHTML = '<div class="loading">Loading...</div>';
+  google.script.run
+    .withSuccessHandler(renderProgress)
+    .withFailureHandler(function(e) { document.getElementById('progress-container').innerHTML = '<div class="empty">Error: ' + e.message + '</div>'; })
+    .getExercisePRs();
+}
+
+function renderProgress(prs) {
+  var c = document.getElementById('progress-container');
+  if (prs.length === 0) {
+    c.innerHTML = '<div class="empty">No data yet.<br>Complete a workout to see your PRs.</div>';
+    return;
+  }
+  c.innerHTML = '<div style="padding:12px 12px 4px;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Personal Records</div>' +
+    '<div class="card">' +
+    prs.map(function(p) {
+      return '<div class="pr-row"><span class="pr-name">' + p.name + '</span><span class="pr-val">' + p.pr + ' kg</span></div>';
+    }).join('') +
+    '</div>';
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+initWorkout();
+</script>
+</body>
+</html>

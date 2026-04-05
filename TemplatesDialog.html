@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, sans-serif; background: #f5f5f5; color: #222; }
+  .header { background: #4a86e8; color: white; padding: 16px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 10; }
+  .header h1 { font-size: 18px; font-weight: 600; flex: 1; }
+  .btn { padding: 10px 18px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; }
+  .btn-primary { background: #4a86e8; color: white; }
+  .btn-danger { background: #e53935; color: white; }
+  .btn-ghost { background: transparent; color: #4a86e8; border: 1.5px solid #4a86e8; }
+  .btn-sm { padding: 6px 12px; font-size: 13px; }
+  .card { background: white; border-radius: 12px; margin: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .template-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #f0f0f0; }
+  .template-row:last-child { border-bottom: none; }
+  .template-name { font-size: 16px; font-weight: 600; }
+  .template-sub { font-size: 13px; color: #888; margin-top: 2px; }
+  .exercise-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid #f8f8f8; }
+  .exercise-row:last-child { border-bottom: none; }
+  .exercise-name-input { flex: 1; border: 1px solid #ddd; border-radius: 6px; padding: 8px; font-size: 15px; }
+  .num-input { width: 52px; border: 1px solid #ddd; border-radius: 6px; padding: 8px 4px; font-size: 15px; text-align: center; }
+  .label-sm { font-size: 11px; color: #888; text-align: center; margin-bottom: 2px; }
+  .section-label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .add-exercise-row { display: flex; gap: 8px; margin-top: 10px; }
+  .add-exercise-row input { flex: 1; border: 1px solid #ddd; border-radius: 6px; padding: 10px; font-size: 15px; }
+  .empty { text-align: center; padding: 40px 20px; color: #aaa; font-size: 15px; }
+  .fab { position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; border-radius: 50%; background: #4a86e8; color: white; font-size: 28px; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; }
+  .back-btn { background: none; border: none; color: white; font-size: 20px; cursor: pointer; padding: 4px 8px; }
+  .name-input-big { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 12px; font-size: 17px; margin-bottom: 16px; }
+  #loading { text-align: center; padding: 60px; color: #888; }
+</style>
+</head>
+<body>
+
+<div id="loading">Loading...</div>
+<div id="list-view" style="display:none">
+  <div class="header">
+    <h1>Templates</h1>
+  </div>
+  <div id="templates-container"></div>
+  <button class="fab" onclick="showNewTemplate()">+</button>
+</div>
+
+<div id="edit-view" style="display:none">
+  <div class="header">
+    <button class="back-btn" onclick="showList()">&#8592;</button>
+    <h1 id="edit-title">Edit Template</h1>
+    <button class="btn btn-primary btn-sm" onclick="saveTemplate()">Save</button>
+  </div>
+  <div style="padding: 12px;">
+    <input type="text" id="template-name-input" class="name-input-big" placeholder="Template name (e.g. Upper Day)">
+    <div class="card">
+      <div class="section-label">Exercises</div>
+      <div id="exercises-list"></div>
+      <div class="add-exercise-row">
+        <input type="text" id="new-exercise-input" placeholder="Add exercise name..." onkeydown="if(event.key==='Enter')addExercise()">
+        <button class="btn btn-primary btn-sm" onclick="addExercise()">Add</button>
+      </div>
+    </div>
+    <div style="margin: 12px 0;" id="delete-btn-container"></div>
+  </div>
+</div>
+
+<script>
+let templates = [];
+let editingTemplateId = null;
+let exercises = []; // [{exercise_name, default_sets, default_reps}]
+
+function init() {
+  google.script.run
+    .withSuccessHandler(function(data) {
+      templates = data;
+      document.getElementById('loading').style.display = 'none';
+      renderList();
+      document.getElementById('list-view').style.display = 'block';
+    })
+    .withFailureHandler(function(err) {
+      document.getElementById('loading').textContent = 'Error: ' + err.message;
+    })
+    .getTemplatesData();
+}
+
+function renderList() {
+  const container = document.getElementById('templates-container');
+  if (templates.length === 0) {
+    container.innerHTML = '<div class="empty">No templates yet.<br>Tap + to create one.</div>';
+    return;
+  }
+  container.innerHTML = templates.map(t => `
+    <div class="card" onclick="editTemplate(${t.id})">
+      <div class="template-row" style="border-bottom:none; padding:0;">
+        <div>
+          <div class="template-name">${t.name}</div>
+          <div class="template-sub">${t.exercises.length} exercise${t.exercises.length !== 1 ? 's' : ''}</div>
+        </div>
+        <span style="color:#bbb; font-size:20px;">›</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function editTemplate(id) {
+  const t = templates.find(t => t.id === id);
+  editingTemplateId = id;
+  exercises = t.exercises.map(e => ({ exercise_name: e.exercise_name, default_sets: e.default_sets, default_reps: e.default_reps }));
+  document.getElementById('template-name-input').value = t.name;
+  document.getElementById('edit-title').textContent = 'Edit Template';
+  document.getElementById('delete-btn-container').innerHTML = `<button class="btn btn-danger" style="width:100%" onclick="deleteTemplate()">Delete Template</button>`;
+  renderExercises();
+  document.getElementById('list-view').style.display = 'none';
+  document.getElementById('edit-view').style.display = 'block';
+}
+
+function showNewTemplate() {
+  editingTemplateId = null;
+  exercises = [];
+  document.getElementById('template-name-input').value = '';
+  document.getElementById('edit-title').textContent = 'New Template';
+  document.getElementById('delete-btn-container').innerHTML = '';
+  renderExercises();
+  document.getElementById('list-view').style.display = 'none';
+  document.getElementById('edit-view').style.display = 'block';
+}
+
+function renderExercises() {
+  const container = document.getElementById('exercises-list');
+  if (exercises.length === 0) {
+    container.innerHTML = '<div style="color:#aaa; padding: 8px 0; font-size:14px;">No exercises yet.</div>';
+    return;
+  }
+  container.innerHTML = exercises.map((ex, i) => `
+    <div class="exercise-row">
+      <input class="exercise-name-input" value="${ex.exercise_name}" oninput="exercises[${i}].exercise_name=this.value" placeholder="Exercise name">
+      <div>
+        <div class="label-sm">Sets</div>
+        <input class="num-input" type="number" value="${ex.default_sets}" oninput="exercises[${i}].default_sets=parseInt(this.value)||1">
+      </div>
+      <div>
+        <div class="label-sm">Reps</div>
+        <input class="num-input" type="number" value="${ex.default_reps}" oninput="exercises[${i}].default_reps=parseInt(this.value)||1">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        ${i > 0 ? `<button class="btn btn-ghost btn-sm" onclick="moveEx(${i},-1)">↑</button>` : '<div style="height:30px"></div>'}
+        ${i < exercises.length-1 ? `<button class="btn btn-ghost btn-sm" onclick="moveEx(${i},1)">↓</button>` : '<div style="height:30px"></div>'}
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="removeEx(${i})">✕</button>
+    </div>
+  `).join('');
+}
+
+function addExercise() {
+  const input = document.getElementById('new-exercise-input');
+  const name = input.value.trim();
+  if (!name) return;
+  exercises.push({ exercise_name: name, default_sets: 3, default_reps: 8 });
+  input.value = '';
+  renderExercises();
+}
+
+function moveEx(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= exercises.length) return;
+  [exercises[i], exercises[j]] = [exercises[j], exercises[i]];
+  renderExercises();
+}
+
+function removeEx(i) {
+  exercises.splice(i, 1);
+  renderExercises();
+}
+
+function saveTemplate() {
+  const name = document.getElementById('template-name-input').value.trim();
+  if (!name) { alert('Enter a template name.'); return; }
+  google.script.run
+    .withSuccessHandler(function(data) {
+      templates = data;
+      showList();
+    })
+    .withFailureHandler(function(err) { alert('Error: ' + err.message); })
+    .saveTemplate(editingTemplateId, name, exercises);
+}
+
+function deleteTemplate() {
+  if (!confirm('Delete this template?')) return;
+  google.script.run
+    .withSuccessHandler(function(data) {
+      templates = data;
+      showList();
+    })
+    .withFailureHandler(function(err) { alert('Error: ' + err.message); })
+    .deleteTemplateById(editingTemplateId);
+}
+
+function showList() {
+  renderList();
+  document.getElementById('edit-view').style.display = 'none';
+  document.getElementById('list-view').style.display = 'block';
+}
+
+init();
+</script>
+</body>
+</html>

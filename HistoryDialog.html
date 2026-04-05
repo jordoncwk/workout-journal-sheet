@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, sans-serif; background: #f5f5f5; color: #222; }
+  .header { background: #4a86e8; color: white; padding: 16px; position: sticky; top: 0; }
+  .header h1 { font-size: 18px; font-weight: 600; }
+  .card { background: white; border-radius: 12px; margin: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); overflow: hidden; }
+  .session-header { padding: 14px 16px; display: flex; align-items: center; cursor: pointer; gap: 12px; }
+  .session-name { font-size: 16px; font-weight: 600; flex: 1; }
+  .session-meta { font-size: 13px; color: #888; }
+  .session-body { border-top: 1px solid #f0f0f0; padding: 12px 16px; display: none; }
+  .session-body.open { display: block; }
+  .ex-group { margin-bottom: 12px; }
+  .ex-group-name { font-size: 14px; font-weight: 600; color: #555; margin-bottom: 6px; }
+  .set-line { font-size: 14px; color: #444; padding: 2px 0; }
+  .chevron { color: #bbb; font-size: 18px; transition: transform 0.2s; }
+  .chevron.open { transform: rotate(90deg); }
+  .empty { text-align: center; padding: 60px 20px; color: #aaa; font-size: 15px; }
+  #loading { text-align: center; padding: 60px; color: #888; }
+</style>
+</head>
+<body>
+<div class="header"><h1>History</h1></div>
+<div id="loading">Loading...</div>
+<div id="container"></div>
+
+<script>
+function formatDate(ms) {
+  return new Date(ms).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+}
+function formatDuration(ms) {
+  const total = Math.floor((ms) / 1000);
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  if (h > 0) return h + 'h ' + m + 'm';
+  return m + 'm';
+}
+
+google.script.run
+  .withSuccessHandler(function(history) {
+    document.getElementById('loading').style.display = 'none';
+    const container = document.getElementById('container');
+    if (history.length === 0) {
+      container.innerHTML = '<div class="empty">No workouts yet.<br>Complete your first workout to see history.</div>';
+      return;
+    }
+    container.innerHTML = history.map((w, i) => {
+      const duration = formatDuration(w.finished_at - w.started_at);
+      const date = formatDate(w.started_at);
+      const setCount = w.sets.length;
+
+      // Group sets by exercise
+      const exerciseMap = {};
+      w.sets.forEach(s => {
+        if (!exerciseMap[s.exercise_name]) exerciseMap[s.exercise_name] = [];
+        exerciseMap[s.exercise_name].push(s);
+      });
+      const exerciseNames = Object.keys(exerciseMap);
+
+      const setsHtml = exerciseNames.map(name => {
+        const exSets = exerciseMap[name].sort((a, b) => a.set_number - b.set_number);
+        return `<div class="ex-group">
+          <div class="ex-group-name">${name}</div>
+          ${exSets.map(s => `<div class="set-line">Set ${s.set_number}: ${s.weight_kg} kg × ${s.reps} reps</div>`).join('')}
+        </div>`;
+      }).join('');
+
+      return `<div class="card">
+        <div class="session-header" onclick="toggle(${i})">
+          <div style="flex:1">
+            <div class="session-name">${w.name}</div>
+            <div class="session-meta">${date} · ${duration} · ${setCount} set${setCount !== 1 ? 's' : ''}</div>
+          </div>
+          <span class="chevron" id="chev-${i}">›</span>
+        </div>
+        <div class="session-body" id="body-${i}">${setsHtml || '<div style="color:#aaa;font-size:14px;">No sets logged.</div>'}</div>
+      </div>`;
+    }).join('');
+  })
+  .withFailureHandler(function(e) {
+    document.getElementById('loading').textContent = 'Error: ' + e.message;
+  })
+  .getHistoryData();
+
+function toggle(i) {
+  const body = document.getElementById('body-' + i);
+  const chev = document.getElementById('chev-' + i);
+  body.classList.toggle('open');
+  chev.classList.toggle('open');
+}
+</script>
+</body>
+</html>
