@@ -1,3 +1,45 @@
+function getProgressPageData() {
+  const prs = getExercisePRs();
+  const stats = _getWorkoutStats();
+  return { prs: prs, stats: stats };
+}
+
+function _getWorkoutStats() {
+  const histSheet = db_getSheet('_History');
+  const workouts = histSheet.getDataRange().getValues().slice(1)
+    .filter(r => r[0] !== '')
+    .map(r => ({ started_at: r[3], finished_at: r[4] }));
+
+  const now = Date.now();
+  const nowDate = new Date();
+  const daysSinceMonday = (nowDate.getDay() + 6) % 7;
+  const weekStart = new Date(nowDate);
+  weekStart.setHours(0, 0, 0, 0);
+  weekStart.setDate(weekStart.getDate() - daysSinceMonday);
+  const monthStart = new Date(nowDate.getFullYear(), nowDate.getMonth(), 1).getTime();
+
+  const total = workouts.length;
+  const thisWeek = workouts.filter(w => w.started_at >= weekStart.getTime()).length;
+  const thisMonth = workouts.filter(w => w.started_at >= monthStart).length;
+
+  let lastWorkout = null;
+  if (workouts.length > 0) {
+    const maxFinished = Math.max(...workouts.map(w => w.finished_at));
+    const diffDays = Math.floor((now - maxFinished) / 86400000);
+    if (diffDays === 0) lastWorkout = 'Today';
+    else if (diffDays === 1) lastWorkout = 'Yesterday';
+    else lastWorkout = diffDays + 'd ago';
+  }
+
+  const setsData = db_getSheet('_Sets').getDataRange().getValues().slice(1).filter(r => r[0] !== '');
+  const counts = {};
+  setsData.forEach(r => { const n = r[2]; counts[n] = (counts[n] || 0) + 1; });
+  let topExercise = null, topCount = 0;
+  Object.keys(counts).forEach(n => { if (counts[n] > topCount) { topCount = counts[n]; topExercise = n; } });
+
+  return { total, thisWeek, thisMonth, lastWorkout, topExercise };
+}
+
 function getExercisePRs() {
   const names = db_getAllExerciseNames();
   if (names.length === 0) return [];

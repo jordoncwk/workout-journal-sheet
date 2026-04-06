@@ -46,6 +46,14 @@
   .add-ex-row { display: flex; gap: 8px; margin: 8px 10px; }
   .add-ex-row input { flex: 1; border: 1px solid var(--border); border-radius: 8px; padding: 10px; font-size: 15px; background: var(--bg-input); color: var(--text-primary); }
   .finish-area { padding: 16px; }
+  .rest-banner { display: none; background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 10px 16px; align-items: center; gap: 12px; }
+  .rest-banner.active { display: flex; }
+  .rest-label { font-size: 13px; color: var(--text-secondary); }
+  .rest-countdown { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent); min-width: 48px; text-align: center; }
+  .rest-countdown.done { color: var(--success); }
+  .rest-dismiss { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); border-radius: 6px; padding: 6px 12px; font-size: 13px; cursor: pointer; }
+  .rest-bar-track { flex: 1; height: 4px; background: var(--bg-input); border-radius: 2px; overflow: hidden; }
+  .rest-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 1s linear; width: 100%; }
   .summary-stat { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 16px; }
   .summary-stat:last-child { border-bottom: none; }
   .summary-val { font-weight: 700; color: var(--accent); }
@@ -86,6 +94,12 @@
     <h1 id="workout-title">Workout</h1>
     <div class="timer" id="timer">0:00</div>
   </div>
+  <div class="rest-banner" id="rest-banner">
+    <div class="rest-label">Rest</div>
+    <div class="rest-bar-track"><div class="rest-bar-fill" id="rest-bar"></div></div>
+    <div class="rest-countdown" id="rest-countdown">2:00</div>
+    <button class="rest-dismiss" onclick="stopRestTimer()">Done</button>
+  </div>
   <div id="exercises-container"></div>
   <div class="add-ex-row">
     <input type="text" id="add-ex-input" placeholder="Add exercise...">
@@ -114,6 +128,49 @@
 let state = null; // { templateId, templateName, startedAt, exercises, currentExerciseIndex }
 let timerInterval = null;
 let bestWeightCache = {};
+let restInterval = null;
+const REST_DURATION = 120; // seconds
+
+function startRestTimer() {
+  if (restInterval) clearInterval(restInterval);
+  let remaining = REST_DURATION;
+  const banner = document.getElementById('rest-banner');
+  const countdown = document.getElementById('rest-countdown');
+  const bar = document.getElementById('rest-bar');
+  banner.classList.add('active');
+  countdown.classList.remove('done');
+  bar.style.transition = 'none';
+  bar.style.width = '100%';
+  // force reflow so transition applies from 100%
+  bar.offsetWidth;
+  bar.style.transition = `width ${REST_DURATION}s linear`;
+  bar.style.width = '0%';
+  function tick() {
+    remaining--;
+    const m = Math.floor(remaining / 60);
+    const s = remaining % 60;
+    countdown.textContent = m + ':' + String(s).padStart(2, '0');
+    if (remaining <= 0) {
+      clearInterval(restInterval);
+      restInterval = null;
+      countdown.classList.add('done');
+      countdown.textContent = 'Go!';
+    }
+  }
+  countdown.textContent = '2:00';
+  restInterval = setInterval(tick, 1000);
+}
+
+function stopRestTimer() {
+  if (restInterval) { clearInterval(restInterval); restInterval = null; }
+  document.getElementById('rest-banner').classList.remove('active');
+  const countdown = document.getElementById('rest-countdown');
+  countdown.classList.remove('done');
+  countdown.textContent = '2:00';
+  const bar = document.getElementById('rest-bar');
+  bar.style.transition = 'none';
+  bar.style.width = '100%';
+}
 
 function showView(id) {
   ['loading','select-view','resume-view','workout-view','summary-view'].forEach(v => {
@@ -249,6 +306,7 @@ function renderExercises() {
         </div>`;
       });
       html += `<button class="btn btn-ghost btn-full btn-sm" onclick="addSet(${i})">+ Add Set</button>`;
+      html += `<button class="btn btn-ghost btn-full btn-sm" style="margin-top:8px;" onclick="startRestTimer()">⏱ Rest Timer (2 min)</button>`;
       html += `<button class="btn btn-primary btn-full" style="margin-top:10px;" onclick="nextExercise()">Next Exercise →</button>`;
       html += `</div>`;
     }

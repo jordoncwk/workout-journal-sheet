@@ -798,20 +798,48 @@ function loadProgress() {
   google.script.run
     .withSuccessHandler(renderProgress)
     .withFailureHandler(function(e) { document.getElementById('progress-container').innerHTML = '<div class="empty">Error: ' + e.message + '</div>'; })
-    .getExercisePRs();
+    .getProgressPageData();
 }
 
-function renderProgress(prs) {
+function renderProgress(data) {
   var c = document.getElementById('progress-container');
-  if (prs.length === 0) {
-    c.innerHTML = '<div class="empty">No data yet.<br>Complete a workout to see your PRs.</div>';
-    return;
+  var prs = data.prs;
+  var s = data.stats;
+  var html = '';
+
+  // Stats card
+  html += '<div class="card" style="margin:12px;">' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">' +
+    statCell(s.total, 'Total Workouts') +
+    statCell(s.thisWeek, 'This Week') +
+    statCell(s.thisMonth, 'This Month') +
+    statCell(s.lastWorkout || '—', 'Last Workout') +
+    '</div>';
+  if (s.topExercise) {
+    html += '<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);text-align:center;">' +
+      '<div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Most Trained</div>' +
+      '<div style="font-size:17px;font-weight:700;">' + s.topExercise + '</div>' +
+      '</div>';
   }
-  c.innerHTML = '<div style="padding:12px 12px 4px;font-size:12px;color:#a0aec0;text-transform:uppercase;letter-spacing:0.5px;">Personal Records</div>' +
-    '<div class="card">' +
-    prs.map(function(p) {
-      return '<div class="pr-row"><span class="pr-name">' + p.name + '</span><span class="pr-val">' + p.pr + ' kg × ' + p.reps + ' reps</span></div>';
-    }).join('') +
+  html += '</div>';
+
+  if (prs.length === 0) {
+    html += '<div class="empty">No PRs yet.<br>Complete a workout to see records.</div>';
+  } else {
+    html += '<div style="padding:12px 12px 4px;font-size:12px;color:#a0aec0;text-transform:uppercase;letter-spacing:0.5px;">Personal Records</div>' +
+      '<div class="card">' +
+      prs.map(function(p) {
+        return '<div class="pr-row"><span class="pr-name">' + p.name + '</span><span class="pr-val">' + p.pr + ' kg × ' + p.reps + ' reps</span></div>';
+      }).join('') +
+      '</div>';
+  }
+  c.innerHTML = html;
+}
+
+function statCell(value, label) {
+  return '<div style="text-align:center;">' +
+    '<div style="font-size:26px;font-weight:800;color:var(--accent);line-height:1.1;">' + value + '</div>' +
+    '<div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">' + label + '</div>' +
     '</div>';
 }
 
