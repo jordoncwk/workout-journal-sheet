@@ -1,10 +1,12 @@
 function getExercisePRs() {
   const names = db_getAllExerciseNames();
-  return names.map(function(name) {
-    const data = db_getProgressData(name);
-    const pr = data.length > 0 ? Math.max.apply(null, data.map(function(d) { return d.maxWeight; })) : 0;
-    return { name: name, pr: pr };
-  }).sort(function(a, b) { return a.name.localeCompare(b.name); });
+  if (names.length === 0) return [];
+  const bests = db_getBestSetsForExercises(names);
+  return names.map(name => {
+    const best = bests[name];
+    if (!best || !best.allTime) return { name, pr: 0, reps: 0 };
+    return { name, pr: best.allTime.weight_kg, reps: best.allTime.reps };
+  }).sort((a, b) => a.name.localeCompare(b.name));
 }
 
 function refreshProgressChart() {

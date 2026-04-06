@@ -1,9 +1,15 @@
 function getTemplatesData() {
-  const templates = db_getTemplates();
-  return templates.map(t => ({
+  const allTemplates = db_getTemplates();
+  const allExercises = db_getAllTemplateExercises();
+  const exByTemplate = {};
+  allExercises.forEach(ex => {
+    if (!exByTemplate[ex.template_id]) exByTemplate[ex.template_id] = [];
+    exByTemplate[ex.template_id].push(ex);
+  });
+  return allTemplates.map(t => ({
     id: t.id,
     name: t.name,
-    exercises: db_getTemplateExercises(t.id)
+    exercises: exByTemplate[t.id] || []
   }));
 }
 

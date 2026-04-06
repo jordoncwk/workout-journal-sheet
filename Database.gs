@@ -53,6 +53,33 @@ function db_deleteTemplate(templateId) {
 
 // ─── Template Exercises ───────────────────────────────────────────────────────
 
+function db_getAllTemplateExerciseNames() {
+  const sheet = db_getSheet('_TemplateExercises');
+  const data = sheet.getDataRange().getValues();
+  if (data.length <= 1) return [];
+  const names = data.slice(1)
+    .filter(r => r[0] !== '')
+    .map(r => r[2]);
+  return [...new Set(names)].sort();
+}
+
+function db_getExerciseNamesFromTemplate(templateName) {
+  const tplSheet = db_getSheet('_Templates');
+  const tplData = tplSheet.getDataRange().getValues();
+  const tplRow = tplData.slice(1).find(r => r[1] === templateName);
+  if (!tplRow) return [];
+  const templateId = tplRow[0];
+
+  const exSheet = db_getSheet('_TemplateExercises');
+  const exData = exSheet.getDataRange().getValues();
+  if (exData.length <= 1) return [];
+  const names = exData.slice(1)
+    .filter(r => r[0] !== '' && r[1] === templateId)
+    .sort((a, b) => a[5] - b[5])
+    .map(r => r[2]);
+  return [...new Set(names)];
+}
+
 function db_getTemplateExercises(templateId) {
   const sheet = db_getSheet('_TemplateExercises');
   const data = sheet.getDataRange().getValues();
@@ -122,21 +149,48 @@ function db_getSetsForWorkout(workoutId) {
 }
 
 function db_getLastBestWeight(exerciseName) {
+  const result = db_getLastBestSet(exerciseName);
+  return result ? result.weight_kg : null;
+}
+
+function db_getLastSessionBestSet(exerciseName) {
   const setsSheet = db_getSheet('_Sets');
-  const historySheet = db_getSheet('_History');
 
   const sets = setsSheet.getDataRange().getValues().slice(1)
     .filter(r => r[0] !== '' && r[2] === exerciseName)
-    .map(r => ({ workout_id: r[1], weight_kg: r[4], logged_at: r[6] }));
+    .map(r => ({ workout_id: r[1], weight_kg: r[4], reps: r[5], logged_at: r[6] }));
 
   if (sets.length === 0) return null;
 
-  // Find the most recently logged workout that includes this exercise
+  // Find the most recent workout session for this exercise
   const mostRecentLoggedAt = Math.max(...sets.map(s => s.logged_at));
   const mostRecentWorkoutId = sets.find(s => s.logged_at === mostRecentLoggedAt).workout_id;
-  const workoutSets = sets.filter(s => s.workout_id === mostRecentWorkoutId);
+  const sessionSets = sets.filter(s => s.workout_id === mostRecentWorkoutId);
 
-  return Math.max(...workoutSets.map(s => s.weight_kg));
+  const bestWeight = Math.max(...sessionSets.map(s => s.weight_kg));
+  const bestSet = sessionSets
+    .filter(s => s.weight_kg === bestWeight)
+    .sort((a, b) => b.reps - a.reps)[0];
+
+  return { weight_kg: bestWeight, reps: bestSet.reps };
+}
+
+function db_getLastBestSet(exerciseName) {
+  const setsSheet = db_getSheet('_Sets');
+
+  const sets = setsSheet.getDataRange().getValues().slice(1)
+    .filter(r => r[0] !== '' && r[2] === exerciseName)
+    .map(r => ({ weight_kg: r[4], reps: r[5] }));
+
+  if (sets.length === 0) return null;
+
+  // All-time best: highest weight, and among those the most reps
+  const bestWeight = Math.max(...sets.map(s => s.weight_kg));
+  const bestSet = sets
+    .filter(s => s.weight_kg === bestWeight)
+    .sort((a, b) => b.reps - a.reps)[0];
+
+  return { weight_kg: bestWeight, reps: bestSet.reps };
 }
 
 function db_getAllExerciseNames() {
@@ -171,6 +225,52 @@ function db_getProgressData(exerciseName) {
   });
 
   return result.sort((a, b) => a.date - b.date);
+}
+
+// ─── Batch helpers ───────────────────────────────────────────────────────────
+
+function db_getAllTemplateExercises() {
+  const sheet = db_getSheet('_TemplateExercises');
+  const data = sheet.getDataRange().getValues();
+  if (data.length <= 1) return [];
+  return db_rowsToObjects(
+    ['id', 'template_id', 'exercise_name', 'default_sets', 'default_reps', 'position'],
+    data.slice(1)
+  ).sort((a, b) => a.position - b.position);
+}
+
+function db_getAllSets() {
+  const sheet = db_getSheet('_Sets');
+  const data = sheet.getDataRange().getValues();
+  if (data.length <= 1) return [];
+  return db_rowsToObjects(
+    ['id', 'workout_id', 'exercise_name', 'set_number', 'weight_kg', 'reps', 'logged_at'],
+    data.slice(1)
+  );
+}
+
+function db_getBestSetsForExercises(names) {
+  const allRows = db_getSheet('_Sets').getDataRange().getValues().slice(1)
+    .filter(r => r[0] !== '');
+  const result = {};
+  names.forEach(name => {
+    const sets = allRows
+      .filter(r => r[2] === name)
+      .map(r => ({ workout_id: r[1], weight_kg: r[4], reps: r[5], logged_at: r[6] }));
+    if (sets.length === 0) { result[name] = { allTime: null, lastSession: null }; return; }
+    const bestWeight = Math.max(...sets.map(s => s.weight_kg));
+    const allTimeBest = sets.filter(s => s.weight_kg === bestWeight).sort((a, b) => b.reps - a.reps)[0];
+    const mostRecentLoggedAt = Math.max(...sets.map(s => s.logged_at));
+    const mostRecentWorkoutId = sets.find(s => s.logged_at === mostRecentLoggedAt).workout_id;
+    const sessionSets = sets.filter(s => s.workout_id === mostRecentWorkoutId);
+    const sessionBestWeight = Math.max(...sessionSets.map(s => s.weight_kg));
+    const sessionBest = sessionSets.filter(s => s.weight_kg === sessionBestWeight).sort((a, b) => b.reps - a.reps)[0];
+    result[name] = {
+      allTime: { weight_kg: allTimeBest.weight_kg, reps: allTimeBest.reps },
+      lastSession: { weight_kg: sessionBest.weight_kg, reps: sessionBest.reps }
+    };
+  });
+  return result;
 }
 
 // ─── Active Workout ────────────────────────────────────────────────────────────

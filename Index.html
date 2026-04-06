@@ -90,6 +90,14 @@
   .set-label { font-size: 13px; color: var(--text-secondary); text-align: center; font-weight: 500; }
   .log-btn { padding: 14px 18px; background: var(--accent); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; white-space: nowrap; min-height: 52px; }
   .log-btn.logged { background: var(--success); }
+  .rest-banner { display: none; background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 10px 16px; align-items: center; gap: 12px; }
+  .rest-banner.active { display: flex; }
+  .rest-label { font-size: 13px; color: var(--text-secondary); }
+  .rest-countdown { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent); min-width: 48px; text-align: center; }
+  .rest-countdown.done { color: var(--success); }
+  .rest-dismiss { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); border-radius: 6px; padding: 6px 12px; font-size: 13px; cursor: pointer; }
+  .rest-bar-track { flex: 1; height: 4px; background: var(--bg-input); border-radius: 2px; overflow: hidden; }
+  .rest-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 1s linear; width: 100%; }
   .add-ex-row { display: flex; gap: 10px; margin: 10px 12px; }
   .add-ex-row input { flex: 1; border: 1.5px solid var(--border); border-radius: 12px; padding: 14px; font-size: 17px; min-height: 52px; background: var(--bg-input); color: var(--text-primary); }
   .summary-stat { display: flex; justify-content: space-between; align-items: center; padding: 18px 0; border-bottom: 1px solid var(--border); font-size: 17px; }
@@ -99,6 +107,13 @@
   /* Templates */
   .template-name { font-size: 19px; font-weight: 700; }
   .template-sub { font-size: 15px; color: var(--text-secondary); margin-top: 4px; }
+  .tpl-item { display: flex; align-items: center; gap: 12px; background: var(--bg-card); border: 1.5px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; cursor: pointer; }
+  .tpl-item.selected { border-color: var(--accent); background: rgba(6,182,212,0.08); }
+  .tpl-item-radio { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .tpl-item.selected .tpl-item-radio { border-color: var(--accent); background: var(--accent); }
+  .tpl-item.selected .tpl-item-radio::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: white; display: block; }
+  .tpl-item-name { font-size: 16px; font-weight: 600; flex: 1; }
+  .tpl-item-sub { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
   .exercise-row { display: flex; align-items: center; gap: 10px; padding: 14px 0; border-bottom: 1px solid var(--border); }
   .exercise-row:last-child { border-bottom: none; }
   .exercise-name-input { flex: 1; border: 1.5px solid var(--border); border-radius: 10px; padding: 12px; font-size: 17px; min-height: 48px; background: var(--bg-input); color: var(--text-primary); }
@@ -138,8 +153,8 @@
   <div id="wv-select" class="wv">
     <div class="header"><h1>Start Workout</h1></div>
     <div style="padding:16px;">
-      <div style="font-size:14px;color:#a0aec0;margin-bottom:8px;">Choose a template</div>
-      <select id="template-select"></select>
+      <div style="font-size:14px;color:var(--text-secondary);margin-bottom:12px;">Choose a template</div>
+      <div id="template-list"></div>
       <button class="btn btn-primary btn-full" style="margin-top:16px;" onclick="startWorkout()">Start</button>
     </div>
   </div>
@@ -160,13 +175,20 @@
       <h1 id="workout-title">Workout</h1>
       <div class="timer" id="timer">0:00</div>
     </div>
-    <div id="exercises-container"></div>
-    <div class="add-ex-row">
-      <input type="text" id="add-ex-input" placeholder="Add exercise...">
-      <button class="btn btn-ghost btn-sm" onclick="addFreeformExercise()">Add</button>
+    <div class="rest-banner" id="rest-banner">
+      <div class="rest-label">Rest</div>
+      <div class="rest-bar-track"><div class="rest-bar-fill" id="rest-bar"></div></div>
+      <div class="rest-countdown" id="rest-countdown">2:00</div>
+      <button class="rest-dismiss" onclick="stopRestTimer()">Done</button>
     </div>
+    <div id="exercises-container"></div>
+    <div style="margin:10px 12px;">
+      <button class="btn btn-ghost btn-full" onclick="openExercisePicker()">+ Add Exercise</button>
+    </div>
+
     <div style="padding:16px;">
-      <button class="btn btn-danger btn-full" onclick="finishWorkout()">Finish Workout</button>
+      <button class="btn btn-primary btn-full" onclick="finishWorkout()">Finish Workout</button>
+      <button class="btn btn-danger btn-full" style="margin-top:8px;" onclick="cancelWorkout()">Cancel Workout</button>
     </div>
   </div>
 
@@ -194,18 +216,17 @@
     <div class="header">
       <button class="back-btn" onclick="showTemplateList()">&#8592;</button>
       <h1 id="edit-title">Edit Template</h1>
-      <button class="btn btn-primary btn-sm" onclick="saveTemplate()">Save</button>
     </div>
     <div style="padding:12px;">
       <input type="text" id="template-name-input" class="name-input-big" placeholder="Template name (e.g. Upper Day)">
       <div class="card">
         <div class="section-label">Exercises</div>
         <div id="exercises-list"></div>
-        <div class="add-exercise-row">
-          <input type="text" id="new-exercise-input" placeholder="Add exercise..." onkeydown="if(event.key==='Enter')addExercise()">
-          <button class="btn btn-primary btn-sm" onclick="addExercise()">Add</button>
+        <div style="margin-top:8px;">
+          <button class="btn btn-ghost btn-full btn-sm" onclick="openExercisePicker('template')">+ Add Exercise</button>
         </div>
       </div>
+      <button class="btn btn-primary btn-full" onclick="saveTemplate()">Save</button>
       <div style="margin:12px 0;" id="delete-btn-container"></div>
     </div>
   </div>
@@ -260,6 +281,48 @@ function navTo(page) {
 // ── Workout ───────────────────────────────────────────────────────────────────
 var wState = null;
 var timerInterval = null;
+var restInterval = null;
+var REST_DURATION = 120;
+
+function startRestTimer() {
+  if (restInterval) clearInterval(restInterval);
+  var remaining = REST_DURATION;
+  var banner = document.getElementById('rest-banner');
+  var countdown = document.getElementById('rest-countdown');
+  var bar = document.getElementById('rest-bar');
+  banner.classList.add('active');
+  countdown.classList.remove('done');
+  countdown.textContent = '2:00';
+  bar.style.transition = 'none';
+  bar.style.width = '100%';
+  bar.offsetWidth; // force reflow
+  bar.style.transition = 'width ' + REST_DURATION + 's linear';
+  bar.style.width = '0%';
+  restInterval = setInterval(function() {
+    remaining--;
+    var m = Math.floor(remaining / 60);
+    var s = remaining % 60;
+    countdown.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+    if (remaining <= 0) {
+      clearInterval(restInterval);
+      restInterval = null;
+      countdown.classList.add('done');
+      countdown.textContent = 'Go!';
+    }
+  }, 1000);
+}
+
+function stopRestTimer() {
+  if (restInterval) { clearInterval(restInterval); restInterval = null; }
+  var banner = document.getElementById('rest-banner');
+  var countdown = document.getElementById('rest-countdown');
+  var bar = document.getElementById('rest-bar');
+  banner.classList.remove('active');
+  countdown.classList.remove('done');
+  countdown.textContent = '2:00';
+  bar.style.transition = 'none';
+  bar.style.width = '100%';
+}
 var bestWeightCache = {};
 var expandedExercises = {};
 var templatesLoaded = false;
@@ -276,15 +339,21 @@ function initWorkout() {
   showWV('wv-loading');
   google.script.run
     .withSuccessHandler(function(data) {
-      var sel = document.getElementById('template-select');
-      sel.innerHTML = '<option value="">Free-form</option>';
-      data.templates.forEach(function(t) {
-        var opt = document.createElement('option');
-        opt.value = t.id;
-        opt.textContent = t.name;
-        opt.dataset.exercises = JSON.stringify(t.exercises);
-        sel.appendChild(opt);
-      });
+      var list = document.getElementById('template-list');
+      window._tplOptions = [{ id: '', name: 'Free-form', exercises: [], sub: 'No template' }].concat(
+        data.templates
+          .filter(function(t) { return t.name !== 'New exercise'; })
+          .map(function(t) {
+            return { id: t.id, name: t.name, exercises: t.exercises, sub: t.exercises.length + ' exercise' + (t.exercises.length !== 1 ? 's' : '') };
+          })
+      );
+      list.innerHTML = window._tplOptions.map(function(t, idx) {
+        return '<div class="tpl-item' + (idx === 0 ? ' selected' : '') + '" onclick="selectTemplate(' + idx + ')">' +
+          '<div class="tpl-item-radio"></div>' +
+          '<div><div class="tpl-item-name">' + t.name + '</div><div class="tpl-item-sub">' + t.sub + '</div></div>' +
+          '</div>';
+      }).join('');
+      list._selectedIdx = 0;
       if (data.activeWorkout) {
         wState = data.activeWorkout;
         showWV('wv-resume');
@@ -296,11 +365,20 @@ function initWorkout() {
     .getWorkoutInitialData();
 }
 
+function selectTemplate(idx) {
+  var items = document.querySelectorAll('.tpl-item');
+  items.forEach(function(e) { e.classList.remove('selected'); });
+  items[idx].classList.add('selected');
+  document.getElementById('template-list')._selectedIdx = idx;
+}
+
 function startWorkout() {
-  var sel = document.getElementById('template-select');
-  var templateId = sel.value ? parseInt(sel.value) : null;
-  var templateName = sel.value ? sel.options[sel.selectedIndex].text : 'Free-form';
-  var exercises = sel.value ? JSON.parse(sel.options[sel.selectedIndex].dataset.exercises) : [];
+  var list = document.getElementById('template-list');
+  var idx = list._selectedIdx || 0;
+  var sel = window._tplOptions[idx] || { id: '', name: 'Free-form', exercises: [] };
+  var templateId = sel.id ? parseInt(sel.id) : null;
+  var templateName = sel.name;
+  var exercises = sel.exercises;
   showWV('wv-loading');
   google.script.run
     .withSuccessHandler(function(s) {
@@ -322,19 +400,26 @@ function discardAndShowSelect() {
   }).discardActiveWorkout();
 }
 
+function cancelWorkout() {
+  if (!confirm('Cancel this workout? All progress will be lost.')) return;
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  if (restInterval) { clearInterval(restInterval); restInterval = null; }
+  google.script.run.withSuccessHandler(function() {
+    wState = null;
+    showWV('wv-select');
+  }).discardActiveWorkout();
+}
+
 function loadBestWeights(cb) {
   var names = [];
   wState.exercises.forEach(function(e) {
     if (names.indexOf(e.exercise_name) === -1) names.push(e.exercise_name);
   });
-  var remaining = names.length;
-  if (remaining === 0) { cb(); return; }
-  names.forEach(function(name) {
-    google.script.run
-      .withSuccessHandler(function(w) { bestWeightCache[name] = w; if (--remaining === 0) cb(); })
-      .withFailureHandler(function() { if (--remaining === 0) cb(); })
-      .getBestWeightForExercise(name);
-  });
+  if (names.length === 0) { cb(); return; }
+  google.script.run
+    .withSuccessHandler(function(bests) { bestWeightCache = bests; cb(); })
+    .withFailureHandler(function() { cb(); })
+    .getBestSetsForExercises(names);
 }
 
 function renderWorkout() {
@@ -357,15 +442,16 @@ function startTimer() {
 
 function renderExercises() {
   var container = document.getElementById('exercises-container');
+  var scrollY = window.scrollY;
   container.innerHTML = wState.exercises.map(function(ex, i) {
     var allLogged = ex.sets.length > 0 && ex.sets.every(function(s) { return s.logged; });
     var isOpen = !!expandedExercises[i];
     var borderColor = allLogged ? '#0d9488' : isOpen ? '#06b6d4' : '#2a3347';
-    var html = '<div class="ex-card">' +
+    var html = '<div class="ex-card" id="exc-' + i + '">' +
       '<div class="ex-header" onclick="toggleExercise(' + i + ')" style="cursor:pointer;">' +
-      '<div class="ex-border" style="background:' + borderColor + '"></div>' +
+      '<div class="ex-border" id="exb-' + i + '" style="background:' + borderColor + '"></div>' +
       '<div style="flex:1"><div class="ex-name">' + ex.exercise_name + '</div>' +
-      (allLogged ? '<div style="font-size:13px;color:#0d9488;margin-top:2px;font-weight:600;">All sets logged ✓</div>' : '') +
+      '<div id="exs-' + i + '" style="font-size:13px;color:#0d9488;margin-top:2px;font-weight:600;' + (allLogged ? '' : 'display:none;') + '">All sets logged ✓</div>' +
       '</div>' +
       '<span style="color:#a0aec0;font-size:24px;margin-left:8px;">' + (isOpen ? '⌄' : '›') + '</span>' +
       '</div>';
@@ -373,30 +459,34 @@ function renderExercises() {
     if (isOpen) {
       var best = bestWeightCache[ex.exercise_name];
       html += '<div class="ex-body">';
-      if (best !== null && best !== undefined) html += '<div class="best-weight">Previous best: ' + best + ' kg</div>';
+      if (best !== null && best !== undefined) {
+        if (best.allTime) html += '<div class="best-weight">All-time best: ' + best.allTime.weight_kg + ' kg × ' + best.allTime.reps + ' reps</div>';
+        if (best.lastSession) html += '<div class="best-weight">Last session: ' + best.lastSession.weight_kg + ' kg × ' + best.lastSession.reps + ' reps</div>';
+      }
       html += '<div style="display:flex;gap:10px;margin-bottom:6px;">' +
         '<div style="width:24px"></div>' +
         '<div class="set-label" style="flex:1">Weight (kg)</div>' +
         '<div class="set-label" style="flex:1">Reps</div>' +
         '<div style="width:86px"></div></div>';
       ex.sets.forEach(function(set, si) {
-        html += '<div class="set-row">' +
+        html += '<div class="set-row" id="sr-' + i + '-' + si + '">' +
           '<div class="set-num">' + (si+1) + '</div>' +
           '<input class="set-input' + (set.logged ? ' logged' : '') + '" type="number" step="0.5" value="' + set.weight_kg + '"' +
-          ' oninput="updateSet(' + i + ',' + si + ',\'weight_kg\',this.value)" placeholder="0"' + (set.logged ? ' readonly' : '') + '>' +
+          ' oninput="updateSet(' + i + ',' + si + ',\'weight_kg\',this.value)" placeholder="kg">' +
           '<input class="set-input' + (set.logged ? ' logged' : '') + '" type="number" value="' + set.reps + '"' +
-          ' oninput="updateSet(' + i + ',' + si + ',\'reps\',this.value)" placeholder="0"' + (set.logged ? ' readonly' : '') + '>' +
-          '<button class="log-btn' + (set.logged ? ' logged' : '') + '" onclick="toggleLogSet(' + i + ',' + si + ')">' +
-          (set.logged ? '✓' : 'Log') + '</button>' +
+          ' oninput="updateSet(' + i + ',' + si + ',\'reps\',this.value)" placeholder="reps">' +
+          '<div id="sc-' + i + '-' + si + '" style="display:' + (set.logged ? 'flex' : 'none') + ';align-items:center;justify-content:center;min-width:28px;color:var(--success);font-size:20px;font-weight:700;">✓</div>' +
           '<button onclick="deleteSet(' + i + ',' + si + ')" style="background:none;border:none;color:#a0aec0;font-size:22px;padding:0 4px;cursor:pointer;min-width:28px;">✕</button>' +
           '</div>';
       });
       html += '<button class="btn btn-ghost btn-full btn-sm" onclick="addSet(' + i + ')" style="margin-top:6px;">+ Add Set</button>';
+      html += '<button class="btn btn-ghost btn-full btn-sm" onclick="startRestTimer()" style="margin-top:8px;">⏱ Rest Timer (2 min)</button>';
       html += '</div>';
     }
     html += '</div>';
     return html;
   }).join('');
+  window.scrollTo(0, scrollY);
 }
 
 function toggleExercise(i) {
@@ -405,7 +495,30 @@ function toggleExercise(i) {
 }
 
 function updateSet(exIdx, setIdx, field, value) {
-  wState.exercises[exIdx].sets[setIdx][field] = value;
+  var set = wState.exercises[exIdx].sets[setIdx];
+  set[field] = value;
+  var hasWeight = set.weight_kg !== '' && set.weight_kg !== null;
+  var hasReps = set.reps !== '' && set.reps !== null;
+  var shouldLog = hasWeight && hasReps;
+  if (set.logged !== shouldLog) {
+    set.logged = shouldLog;
+    google.script.run.saveActiveWorkoutState(wState);
+    // Targeted update — avoids rebuilding DOM (which kills focus and causes scroll jump)
+    var row = document.getElementById('sr-' + exIdx + '-' + setIdx);
+    if (row) {
+      row.querySelectorAll('.set-input').forEach(function(inp) { inp.classList.toggle('logged', shouldLog); });
+      var check = document.getElementById('sc-' + exIdx + '-' + setIdx);
+      if (check) check.style.display = shouldLog ? 'flex' : 'none';
+      var ex = wState.exercises[exIdx];
+      var allLogged = ex.sets.every(function(s) { return s.logged; });
+      var border = document.getElementById('exb-' + exIdx);
+      if (border) border.style.background = allLogged ? '#0d9488' : '#06b6d4';
+      var status = document.getElementById('exs-' + exIdx);
+      if (status) status.style.display = allLogged ? '' : 'none';
+    } else {
+      renderExercises();
+    }
+  }
 }
 
 function toggleLogSet(exIdx, setIdx) {
@@ -425,18 +538,65 @@ function deleteSet(exIdx, setIdx) {
   renderExercises();
 }
 
-function addFreeformExercise() {
-  var input = document.getElementById('add-ex-input');
-  var name = input.value.trim();
-  if (!name) return;
-  var newIdx = wState.exercises.length;
-  wState.exercises.push({ exercise_name: name, sets: [{ weight_kg: '', reps: '', logged: false }] });
-  expandedExercises[newIdx] = true;
-  input.value = '';
-  bestWeightCache[name] = null;
-  google.script.run.withSuccessHandler(function(w) { bestWeightCache[name] = w; renderExercises(); }).getBestWeightForExercise(name);
-  renderExercises();
+var presetExerciseNames = [];
+var pickerMode = 'workout'; // 'workout' or 'template'
+
+function openExercisePicker(mode) {
+  pickerMode = mode || 'workout';
+  document.getElementById('ex-picker').style.display = 'block';
+  var search = document.getElementById('ex-search');
+  search.value = '';
+  document.getElementById('ex-picker-list').innerHTML = '<div style="padding:16px;color:var(--text-secondary);text-align:center;font-size:15px;">Loading...</div>';
+  setTimeout(function() { search.focus(); }, 100);
+  google.script.run.withSuccessHandler(function(names) {
+    presetExerciseNames = names;
+    renderPickerList(search.value);
+  }).getPresetExerciseNames();
 }
+
+function closeExercisePicker() {
+  document.getElementById('ex-picker').style.display = 'none';
+}
+
+function renderPickerList(filter) {
+  var list = document.getElementById('ex-picker-list');
+  var f = filter.toLowerCase().trim();
+  var filtered = f ? presetExerciseNames.filter(function(n) { return n.toLowerCase().indexOf(f) !== -1; }) : presetExerciseNames;
+  if (filtered.length === 0) {
+    list.innerHTML = '<div style="padding:16px;color:var(--text-secondary);text-align:center;font-size:15px;">No presets match. Use "Add custom name" below.</div>';
+    return;
+  }
+  window._pickerFiltered = filtered;
+  list.innerHTML = filtered.map(function(name, i) {
+    return '<div onclick="addExerciseByName(window._pickerFiltered[' + i + '])" style="padding:14px 20px;font-size:16px;cursor:pointer;border-bottom:1px solid var(--border);">' + name + '</div>';
+  }).join('');
+}
+
+function filterExercises(val) {
+  renderPickerList(val);
+}
+
+function addCustomExercise() {
+  var name = document.getElementById('ex-search').value.trim();
+  if (!name) return;
+  addExerciseByName(name);
+}
+
+function addExerciseByName(name) {
+  closeExercisePicker();
+  if (pickerMode === 'template') {
+    editExercises.push({ exercise_name: name, default_sets: 3, default_reps: 8 });
+    renderEditExercises();
+  } else {
+    var newIdx = wState.exercises.length;
+    wState.exercises.push({ exercise_name: name, sets: [{ weight_kg: '', reps: '', logged: false }] });
+    expandedExercises[newIdx] = true;
+    bestWeightCache[name] = null;
+    google.script.run.withSuccessHandler(function(w) { bestWeightCache[name] = w; renderExercises(); }).getBestSetForExercise(name);
+    renderExercises();
+  }
+}
+
 
 function finishWorkout() {
   if (!confirm('Finish this workout?')) return;
@@ -543,14 +703,6 @@ function renderEditExercises() {
   }).join('');
 }
 
-function addExercise() {
-  var input = document.getElementById('new-exercise-input');
-  var name = input.value.trim();
-  if (!name) return;
-  editExercises.push({ exercise_name: name, default_sets: 3, default_reps: 8 });
-  input.value = '';
-  renderEditExercises();
-}
 
 function moveEx(i, dir) {
   var j = i + dir;
@@ -619,6 +771,7 @@ function renderHistory(history) {
       '<div class="session-header" onclick="toggleHistory(' + i + ')">' +
       '<div style="flex:1"><div class="session-name">' + w.name + '</div>' +
       '<div class="session-meta">' + date + ' · ' + duration + ' · ' + w.sets.length + ' set' + (w.sets.length !== 1 ? 's' : '') + '</div></div>' +
+      '<button onclick="event.stopPropagation();deleteWorkout(' + w.id + ')" style="background:none;border:none;color:var(--danger);font-size:20px;padding:0 8px;cursor:pointer;line-height:1;">🗑</button>' +
       '<span class="chevron" id="hchev-' + i + '">›</span></div>' +
       '<div class="session-body" id="hbody-' + i + '">' + (setsHtml || '<div style="color:#a0aec0;font-size:14px;">No sets logged.</div>') + '</div>' +
       '</div>';
@@ -628,6 +781,14 @@ function renderHistory(history) {
 function toggleHistory(i) {
   document.getElementById('hbody-' + i).classList.toggle('open');
   document.getElementById('hchev-' + i).classList.toggle('open');
+}
+
+function deleteWorkout(id) {
+  if (!confirm('Delete this workout? This cannot be undone.')) return;
+  google.script.run
+    .withSuccessHandler(function() { historyLoaded = false; loadHistory(); })
+    .withFailureHandler(function(e) { alert('Error: ' + e.message); })
+    .deleteWorkout(id);
 }
 
 // ── Progress ──────────────────────────────────────────────────────────────────
@@ -649,7 +810,7 @@ function renderProgress(prs) {
   c.innerHTML = '<div style="padding:12px 12px 4px;font-size:12px;color:#a0aec0;text-transform:uppercase;letter-spacing:0.5px;">Personal Records</div>' +
     '<div class="card">' +
     prs.map(function(p) {
-      return '<div class="pr-row"><span class="pr-name">' + p.name + '</span><span class="pr-val">' + p.pr + ' kg</span></div>';
+      return '<div class="pr-row"><span class="pr-name">' + p.name + '</span><span class="pr-val">' + p.pr + ' kg × ' + p.reps + ' reps</span></div>';
     }).join('') +
     '</div>';
 }
@@ -657,5 +818,18 @@ function renderProgress(prs) {
 // ── Boot ──────────────────────────────────────────────────────────────────────
 initWorkout();
 </script>
+<!-- Exercise picker overlay (outside all pages so it works from any page) -->
+<div id="ex-picker" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.6);" onclick="if(event.target===this)closeExercisePicker()">
+  <div style="position:absolute;bottom:0;left:0;right:0;background:var(--bg-card);border-radius:20px 20px 0 0;max-height:70vh;display:flex;flex-direction:column;">
+    <div style="padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+      <input id="ex-search" type="text" placeholder="Search or type custom..." style="flex:1;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-size:16px;color:var(--text-primary);" oninput="filterExercises(this.value)">
+      <button onclick="closeExercisePicker()" style="background:none;border:none;color:var(--text-secondary);font-size:24px;cursor:pointer;padding:0 4px;">✕</button>
+    </div>
+    <div id="ex-picker-list" style="overflow-y:auto;padding:8px 0;"></div>
+    <div style="padding:12px 16px;border-top:1px solid var(--border);">
+      <button class="btn btn-ghost btn-full" onclick="addCustomExercise()">Add custom name</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

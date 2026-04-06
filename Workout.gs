@@ -1,8 +1,15 @@
 function getWorkoutInitialData() {
-  const templates = db_getTemplates().map(t => ({
+  const allTemplates = db_getTemplates();
+  const allExercises = db_getAllTemplateExercises();
+  const exByTemplate = {};
+  allExercises.forEach(ex => {
+    if (!exByTemplate[ex.template_id]) exByTemplate[ex.template_id] = [];
+    exByTemplate[ex.template_id].push(ex);
+  });
+  const templates = allTemplates.map(t => ({
     id: t.id,
     name: t.name,
-    exercises: db_getTemplateExercises(t.id)
+    exercises: exByTemplate[t.id] || []
   }));
   const activeWorkout = db_getActiveWorkout();
   return { templates, activeWorkout };
@@ -20,8 +27,23 @@ function startWorkout(templateId, templateName, exerciseList) {
   return state;
 }
 
+function getPresetExerciseNames() {
+  return db_getExerciseNamesFromTemplate('New exercise');
+}
+
 function getBestWeightForExercise(exerciseName) {
   return db_getLastBestWeight(exerciseName);
+}
+
+function getBestSetsForExercises(names) {
+  return db_getBestSetsForExercises(names);
+}
+
+function getBestSetForExercise(exerciseName) {
+  return {
+    allTime: db_getLastBestSet(exerciseName),
+    lastSession: db_getLastSessionBestSet(exerciseName)
+  };
 }
 
 function saveActiveWorkoutState(state) {
