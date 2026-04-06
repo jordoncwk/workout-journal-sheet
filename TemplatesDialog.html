@@ -3,33 +3,46 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
+  :root {
+    --bg-base: #0f1117;
+    --bg-card: #161b27;
+    --bg-input: #1e2535;
+    --border: #2a3347;
+    --text-primary: #f0f4ff;
+    --text-secondary: #a0aec0;
+    --accent: #06b6d4;
+    --accent-dark: #0891b2;
+    --success: #0d9488;
+    --success-bg: rgba(13,148,136,0.15);
+    --danger: #ef4444;
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, sans-serif; background: #f5f5f5; color: #222; }
-  .header { background: #4a86e8; color: white; padding: 16px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 10; }
+  body { font-family: -apple-system, sans-serif; background: var(--bg-base); color: var(--text-primary); }
+  .header { background: var(--bg-card); color: var(--text-primary); padding: 16px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--border); }
   .header h1 { font-size: 18px; font-weight: 600; flex: 1; }
   .btn { padding: 10px 18px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; }
-  .btn-primary { background: #4a86e8; color: white; }
-  .btn-danger { background: #e53935; color: white; }
-  .btn-ghost { background: transparent; color: #4a86e8; border: 1.5px solid #4a86e8; }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-danger { background: var(--danger); color: white; }
+  .btn-ghost { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }
   .btn-sm { padding: 6px 12px; font-size: 13px; }
-  .card { background: white; border-radius: 12px; margin: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
-  .template-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #f0f0f0; }
+  .card { background: var(--bg-card); border-radius: 12px; margin: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.4); border: 1px solid var(--border); }
+  .template-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--border); }
   .template-row:last-child { border-bottom: none; }
-  .template-name { font-size: 16px; font-weight: 600; }
-  .template-sub { font-size: 13px; color: #888; margin-top: 2px; }
-  .exercise-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid #f8f8f8; }
+  .template-name { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+  .template-sub { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+  .exercise-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); }
   .exercise-row:last-child { border-bottom: none; }
-  .exercise-name-input { flex: 1; border: 1px solid #ddd; border-radius: 6px; padding: 8px; font-size: 15px; }
-  .num-input { width: 52px; border: 1px solid #ddd; border-radius: 6px; padding: 8px 4px; font-size: 15px; text-align: center; }
-  .label-sm { font-size: 11px; color: #888; text-align: center; margin-bottom: 2px; }
-  .section-label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .exercise-name-input { flex: 1; border: 1px solid var(--border); border-radius: 6px; padding: 8px; font-size: 15px; background: var(--bg-input); color: var(--text-primary); }
+  .num-input { width: 52px; border: 1px solid var(--border); border-radius: 6px; padding: 8px 4px; font-size: 15px; text-align: center; background: var(--bg-input); color: var(--text-primary); }
+  .label-sm { font-size: 11px; color: var(--text-secondary); text-align: center; margin-bottom: 2px; }
+  .section-label { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
   .add-exercise-row { display: flex; gap: 8px; margin-top: 10px; }
-  .add-exercise-row input { flex: 1; border: 1px solid #ddd; border-radius: 6px; padding: 10px; font-size: 15px; }
-  .empty { text-align: center; padding: 40px 20px; color: #aaa; font-size: 15px; }
-  .fab { position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; border-radius: 50%; background: #4a86e8; color: white; font-size: 28px; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; }
-  .back-btn { background: none; border: none; color: white; font-size: 20px; cursor: pointer; padding: 4px 8px; }
-  .name-input-big { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 12px; font-size: 17px; margin-bottom: 16px; }
-  #loading { text-align: center; padding: 60px; color: #888; }
+  .add-exercise-row input { flex: 1; border: 1px solid var(--border); border-radius: 6px; padding: 10px; font-size: 15px; background: var(--bg-input); color: var(--text-primary); }
+  .empty { text-align: center; padding: 40px 20px; color: var(--text-secondary); font-size: 15px; }
+  .fab { position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; border-radius: 50%; background: var(--accent); color: white; font-size: 28px; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(6,182,212,0.35); display: flex; align-items: center; justify-content: center; }
+  .back-btn { background: none; border: none; color: var(--text-primary); font-size: 20px; cursor: pointer; padding: 4px 8px; }
+  .name-input-big { width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 17px; margin-bottom: 16px; background: var(--bg-input); color: var(--text-primary); }
+  #loading { text-align: center; padding: 60px; color: var(--text-secondary); }
 </style>
 </head>
 <body>
@@ -95,7 +108,7 @@ function renderList() {
           <div class="template-name">${t.name}</div>
           <div class="template-sub">${t.exercises.length} exercise${t.exercises.length !== 1 ? 's' : ''}</div>
         </div>
-        <span style="color:#bbb; font-size:20px;">›</span>
+        <span style="color:#a0aec0; font-size:20px;">›</span>
       </div>
     </div>
   `).join('');
@@ -127,7 +140,7 @@ function showNewTemplate() {
 function renderExercises() {
   const container = document.getElementById('exercises-list');
   if (exercises.length === 0) {
-    container.innerHTML = '<div style="color:#aaa; padding: 8px 0; font-size:14px;">No exercises yet.</div>';
+    container.innerHTML = '<div style="color:#a0aec0; padding: 8px 0; font-size:14px;">No exercises yet.</div>';
     return;
   }
   container.innerHTML = exercises.map((ex, i) => `
