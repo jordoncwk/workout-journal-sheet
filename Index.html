@@ -7,18 +7,18 @@
 <title>Workout Journal</title>
 <style>
   :root {
-  --bg-base: #0f1117;
-  --bg-card: #161b27;
-  --bg-input: #1e2535;
-  --border: #2a3347;
-  --text-primary: #f0f4ff;
-  --text-secondary: #a0aec0;
-  --accent: #06b6d4;
-  --accent-dark: #0891b2;
-  --success: #0d9488;
-  --success-bg: rgba(13,148,136,0.15);
-  --danger: #ef4444;
-}
+    --bg-base: #0f1117;
+    --bg-card: #161b27;
+    --bg-input: #1e2535;
+    --border: #2a3347;
+    --text-primary: #f0f4ff;
+    --text-secondary: #a0aec0;
+    --accent: #06b6d4;
+    --accent-dark: #0891b2;
+    --success: #0d9488;
+    --success-bg: rgba(13,148,136,0.15);
+    --danger: #ef4444;
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; }
   body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg-base); color: var(--text-primary); font-size: 17px; }
@@ -360,14 +360,14 @@ function renderExercises() {
   container.innerHTML = wState.exercises.map(function(ex, i) {
     var allLogged = ex.sets.length > 0 && ex.sets.every(function(s) { return s.logged; });
     var isOpen = !!expandedExercises[i];
-    var borderColor = allLogged ? '#34a853' : isOpen ? '#4a86e8' : '#d1d1d6';
+    var borderColor = allLogged ? '#0d9488' : isOpen ? '#06b6d4' : '#2a3347';
     var html = '<div class="ex-card">' +
       '<div class="ex-header" onclick="toggleExercise(' + i + ')" style="cursor:pointer;">' +
       '<div class="ex-border" style="background:' + borderColor + '"></div>' +
       '<div style="flex:1"><div class="ex-name">' + ex.exercise_name + '</div>' +
-      (allLogged ? '<div style="font-size:13px;color:#34a853;margin-top:2px;font-weight:600;">All sets logged ✓</div>' : '') +
+      (allLogged ? '<div style="font-size:13px;color:#0d9488;margin-top:2px;font-weight:600;">All sets logged ✓</div>' : '') +
       '</div>' +
-      '<span style="color:#c7c7cc;font-size:24px;margin-left:8px;">' + (isOpen ? '⌄' : '›') + '</span>' +
+      '<span style="color:#a0aec0;font-size:24px;margin-left:8px;">' + (isOpen ? '⌄' : '›') + '</span>' +
       '</div>';
 
     if (isOpen) {
@@ -388,7 +388,7 @@ function renderExercises() {
           ' oninput="updateSet(' + i + ',' + si + ',\'reps\',this.value)" placeholder="0"' + (set.logged ? ' readonly' : '') + '>' +
           '<button class="log-btn' + (set.logged ? ' logged' : '') + '" onclick="toggleLogSet(' + i + ',' + si + ')">' +
           (set.logged ? '✓' : 'Log') + '</button>' +
-          '<button onclick="deleteSet(' + i + ',' + si + ')" style="background:none;border:none;color:#aeaeb2;font-size:22px;padding:0 4px;cursor:pointer;min-width:28px;">✕</button>' +
+          '<button onclick="deleteSet(' + i + ',' + si + ')" style="background:none;border:none;color:#a0aec0;font-size:22px;padding:0 4px;cursor:pointer;min-width:28px;">✕</button>' +
           '</div>';
       });
       html += '<button class="btn btn-ghost btn-full btn-sm" onclick="addSet(' + i + ')" style="margin-top:6px;">+ Add Set</button>';
@@ -492,7 +492,7 @@ function renderTemplateList() {
       '<div style="display:flex;align-items:center;justify-content:space-between;">' +
       '<div><div class="template-name">' + t.name + '</div>' +
       '<div class="template-sub">' + t.exercises.length + ' exercise' + (t.exercises.length !== 1 ? 's' : '') + '</div></div>' +
-      '<span style="color:#bbb;font-size:20px;">›</span></div></div>';
+      '<span style="color:#a0aec0;font-size:20px;">›</span></div></div>';
   }).join('');
 }
 
@@ -526,7 +526,7 @@ function showNewTemplate() {
 function renderEditExercises() {
   var c = document.getElementById('exercises-list');
   if (editExercises.length === 0) {
-    c.innerHTML = '<div style="color:#aaa;padding:8px 0;font-size:14px;">No exercises yet.</div>';
+    c.innerHTML = '<div style="color:#a0aec0;padding:8px 0;font-size:14px;">No exercises yet.</div>';
     return;
   }
   c.innerHTML = editExercises.map(function(ex, i) {
@@ -620,7 +620,7 @@ function renderHistory(history) {
       '<div style="flex:1"><div class="session-name">' + w.name + '</div>' +
       '<div class="session-meta">' + date + ' · ' + duration + ' · ' + w.sets.length + ' set' + (w.sets.length !== 1 ? 's' : '') + '</div></div>' +
       '<span class="chevron" id="hchev-' + i + '">›</span></div>' +
-      '<div class="session-body" id="hbody-' + i + '">' + (setsHtml || '<div style="color:#aaa;font-size:14px;">No sets logged.</div>') + '</div>' +
+      '<div class="session-body" id="hbody-' + i + '">' + (setsHtml || '<div style="color:#a0aec0;font-size:14px;">No sets logged.</div>') + '</div>' +
       '</div>';
   }).join('');
 }
@@ -646,7 +646,7 @@ function renderProgress(prs) {
     c.innerHTML = '<div class="empty">No data yet.<br>Complete a workout to see your PRs.</div>';
     return;
   }
-  c.innerHTML = '<div style="padding:12px 12px 4px;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Personal Records</div>' +
+  c.innerHTML = '<div style="padding:12px 12px 4px;font-size:12px;color:#a0aec0;text-transform:uppercase;letter-spacing:0.5px;">Personal Records</div>' +
     '<div class="card">' +
     prs.map(function(p) {
       return '<div class="pr-row"><span class="pr-name">' + p.name + '</span><span class="pr-val">' + p.pr + ' kg</span></div>';
