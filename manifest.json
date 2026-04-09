@@ -4,6 +4,7 @@
   "description": "Personal workout tracking journal",
   "start_url": "/workout-journal-sheet/",
   "id": "/workout-journal-sheet/",
+  "scope": "/workout-journal-sheet/",
   "display": "standalone",
   "background_color": "#0f0f0f",
   "theme_color": "#0f0f0f",
