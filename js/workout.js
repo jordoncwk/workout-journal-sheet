@@ -10,7 +10,7 @@ export function renderWorkout(container) {
   const state = getState();
   if (!state) { navigate('#home'); return; }
 
-  stopTimer();
+  stopWorkoutTimer();
   render(container, state);
 }
 
@@ -65,7 +65,7 @@ function render(container, state) {
   container.innerHTML = html;
 
   // Elapsed workout timer
-  stopTimer();
+  stopWorkoutTimer();
   timerInterval = setInterval(() => {
     const el = document.getElementById('workout-timer');
     if (el) el.textContent = formatDuration(Date.now() - state.startedAt);
@@ -180,9 +180,13 @@ async function finishWorkout(state) {
   navigate('#history');
 }
 
-function stopTimer() {
+function stopWorkoutTimer() {
   clearInterval(timerInterval);
   timerInterval = null;
+}
+
+function stopTimer() {
+  stopWorkoutTimer();
   clearInterval(restTimerState.interval);
   restTimerState.interval = null;
   restTimerState.remaining = 0;
