@@ -24,7 +24,9 @@ const SHELL = [
 
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())
+    caches.open(CACHE).then(c =>
+      Promise.all(SHELL.map(url => c.add(url).catch(() => {})))
+    ).then(() => self.skipWaiting())
   );
 });
 
