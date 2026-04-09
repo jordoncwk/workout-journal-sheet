@@ -200,7 +200,7 @@ async function finishWorkout(state) {
 
   await saveWorkout(workout);
   await addToSyncQueue({ id: workout.id, action: 'upsertWorkout', workout });
-  await flushQueue();
+  flushQueue();
 
   localStorage.removeItem('activeWorkout');
   navigate('#history');

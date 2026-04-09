@@ -122,7 +122,7 @@ export async function renderTemplateEdit(container, params) {
       };
       await saveTemplate(tpl);
       await addToSyncQueue({ id: tpl.id, action: 'upsertTemplate', template: tpl });
-      await flushQueue();
+      flushQueue();
       navigate('#templates');
     });
 
@@ -133,7 +133,7 @@ export async function renderTemplateEdit(container, params) {
         if (!confirm('Delete this template?')) return;
         await deleteTemplate(template.id);
         await addToSyncQueue({ action: 'deleteTemplate', id: template.id });
-        await flushQueue();
+        flushQueue();
         navigate('#templates');
       });
     }

@@ -49,7 +49,7 @@ export async function renderHistoryDetail(container, params) {
     if (!confirm('Delete this workout?')) return;
     await deleteWorkout(id);
     await addToSyncQueue({ action: 'deleteWorkout', id });
-    await flushQueue();
+    flushQueue();
     navigate('#history');
   });
 }
