@@ -121,7 +121,7 @@ export async function renderTemplateEdit(container, params) {
         exercises: exercises.map((e, i) => ({ ...e, order: i })),
       };
       await saveTemplate(tpl);
-      await addToSyncQueue({ action: 'upsertTemplate', template: tpl });
+      await addToSyncQueue({ id: tpl.id, action: 'upsertTemplate', template: tpl });
       await flushQueue();
       navigate('#templates');
     });
