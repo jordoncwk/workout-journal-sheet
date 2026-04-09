@@ -5,6 +5,7 @@ import { formatRestTime } from './timer-utils.js';
 
 let timerInterval = null;
 const restTimerState = { interval: null, endTime: null };
+const collapsedExercises = new Set();
 
 export function renderWorkout(container) {
   const state = getState();
@@ -38,21 +39,24 @@ function render(container, state) {
   </div>`;
 
   state.exercises.forEach((ex, ei) => {
+    const isCollapsed = collapsedExercises.has(ei);
     html += `
       <div class="ex-card" data-ei="${ei}">
-        <div class="ex-card-header">
-          <span class="ex-card-name">${ex.exercise_name}</span>
+        <div class="ex-card-header" data-ei="${ei}">
+          <span class="ex-card-name">${isCollapsed ? '▸' : '▾'} ${ex.exercise_name}</span>
           <button class="btn btn-ghost btn-sm add-set-btn" data-ei="${ei}">+ Set</button>
         </div>`;
-    ex.sets.forEach((s, si) => {
-      html += `
-        <div class="set-row" data-ei="${ei}" data-si="${si}">
-          <span class="set-num">${si + 1}</span>
-          <input class="set-input" type="number" inputmode="decimal" placeholder="kg" value="${s.weight_kg}" data-field="weight_kg" data-ei="${ei}" data-si="${si}">
-          <input class="set-input" type="number" inputmode="numeric" placeholder="reps" value="${s.reps}" data-field="reps" data-ei="${ei}" data-si="${si}">
-          <button class="set-log-btn ${s.logged ? 'logged' : ''}" data-ei="${ei}" data-si="${si}">✓</button>
-        </div>`;
-    });
+    if (!isCollapsed) {
+      ex.sets.forEach((s, si) => {
+        html += `
+          <div class="set-row" data-ei="${ei}" data-si="${si}">
+            <span class="set-num">${si + 1}</span>
+            <input class="set-input" type="number" inputmode="decimal" placeholder="kg" value="${s.weight_kg}" data-field="weight_kg" data-ei="${ei}" data-si="${si}">
+            <input class="set-input" type="number" inputmode="numeric" placeholder="reps" value="${s.reps}" data-field="reps" data-ei="${ei}" data-si="${si}">
+            <button class="set-log-btn ${s.logged ? 'logged' : ''}" data-ei="${ei}" data-si="${si}">✓</button>
+          </div>`;
+      });
+    }
     html += `</div>`;
   });
 
@@ -130,10 +134,24 @@ function render(container, state) {
 
   // Add set
   container.querySelectorAll('.add-set-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
       const ei = +btn.dataset.ei;
       state.exercises[ei].sets.push({ weight_kg: '', reps: '', logged: false });
       saveState(state);
+      render(container, state);
+    });
+  });
+
+  // Collapse/expand on header tap
+  container.querySelectorAll('.ex-card-header').forEach(header => {
+    header.addEventListener('click', () => {
+      const ei = +header.dataset.ei;
+      if (collapsedExercises.has(ei)) {
+        collapsedExercises.delete(ei);
+      } else {
+        collapsedExercises.add(ei);
+      }
       render(container, state);
     });
   });
@@ -198,6 +216,7 @@ function stopTimer() {
   clearInterval(restTimerState.interval);
   restTimerState.interval = null;
   restTimerState.endTime = null;
+  collapsedExercises.clear();
 }
 
 function formatDuration(ms) {
