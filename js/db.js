@@ -29,10 +29,14 @@ function openDB() {
 function tx(storeName, mode, fn) {
   return openDB().then(db => new Promise((resolve, reject) => {
     const t = db.transaction(storeName, mode);
+    let result;
     const store = t.objectStore(storeName);
     const req = fn(store);
-    req.onsuccess = () => resolve(req.result);
+    req.onsuccess = () => { result = req.result; };
     req.onerror = () => reject(req.error);
+    t.oncomplete = () => resolve(result);
+    t.onabort = () => reject(t.error);
+    t.onerror = () => reject(t.error);
   }));
 }
 
@@ -74,7 +78,7 @@ export function getWorkout(id) {
 }
 
 export function listWorkouts() {
-  return getAll('workouts').then(rows => rows.sort((a, b) => b.updatedAt - a.updatedAt));
+  return getAll('workouts').then(rows => rows.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)));
 }
 
 export function deleteWorkout(id) {
