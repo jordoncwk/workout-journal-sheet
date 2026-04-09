@@ -1,18 +1,22 @@
-import { saveWorkout, addToSyncQueue } from './db.js';
+import { saveWorkout, addToSyncQueue, listWorkouts } from './db.js';
 import { flushQueue } from './sync.js';
 import { navigate } from './router.js';
 import { formatRestTime } from './timer-utils.js';
+import { buildExerciseStats } from './workout-stats.js';
 
 let timerInterval = null;
 const restTimerState = { interval: null, endTime: null, audioCtx: null };
 const collapsedExercises = new Set();
 
-export function renderWorkout(container) {
+export async function renderWorkout(container) {
   const state = getState();
   if (!state) { navigate('#home'); return; }
 
   stopWorkoutTimer();
-  render(container, state);
+  const allWorkouts = await listWorkouts();
+  const exerciseNames = state.exercises.map(ex => ex.exercise_name);
+  const exerciseStats = buildExerciseStats(allWorkouts, exerciseNames);
+  render(container, state, exerciseStats);
 }
 
 function getState() {
@@ -23,7 +27,7 @@ function saveState(state) {
   localStorage.setItem('activeWorkout', JSON.stringify(state));
 }
 
-function render(container, state) {
+function render(container, state, exerciseStats = {}) {
   const elapsed = formatDuration(Date.now() - state.startedAt);
 
   let html = `
@@ -40,10 +44,19 @@ function render(container, state) {
 
   state.exercises.forEach((ex, ei) => {
     const isCollapsed = collapsedExercises.has(ei);
+    const stats = exerciseStats[ex.exercise_name.toLowerCase()];
+    let statsHtml = '';
+    if (stats && (stats.best || stats.last)) {
+      const bestStr = stats.best ? `Best ${stats.best.weight_kg}kg×${stats.best.reps}` : '';
+      const lastStr = stats.last ? `Last ${stats.last.weight_kg}kg×${stats.last.reps}` : '';
+      const parts = [bestStr, lastStr].filter(Boolean);
+      statsHtml = `<span class="ex-stats">${parts.join(' · ')}</span>`;
+    }
     html += `
       <div class="ex-card" data-ei="${ei}">
         <div class="ex-card-header" data-ei="${ei}">
           <span class="ex-card-name">${isCollapsed ? '▸' : '▾'} ${ex.exercise_name}</span>
+          ${statsHtml}
           <button class="btn btn-ghost btn-sm add-set-btn" data-ei="${ei}">+ Set</button>
         </div>`;
     if (!isCollapsed) {
@@ -154,7 +167,7 @@ function render(container, state) {
       const ei = +btn.dataset.ei;
       state.exercises[ei].sets.push({ weight_kg: '', reps: '' });
       saveState(state);
-      render(container, state);
+      render(container, state, exerciseStats);
     });
   });
 
@@ -167,7 +180,7 @@ function render(container, state) {
       } else {
         collapsedExercises.add(ei);
       }
-      render(container, state);
+      render(container, state, exerciseStats);
     });
   });
 
@@ -177,7 +190,7 @@ function render(container, state) {
     if (!name || !name.trim()) return;
     state.exercises.push({ exercise_name: name.trim(), sets: [{ weight_kg: '', reps: '' }] });
     saveState(state);
-    render(container, state);
+    render(container, state, exerciseStats);
   });
 
   // Discard
