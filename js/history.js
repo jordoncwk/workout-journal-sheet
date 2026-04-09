@@ -1,5 +1,4 @@
-import { listWorkouts, deleteWorkout, addToSyncQueue } from './db.js';
-import { flushQueue } from './sync.js';
+import { listWorkouts } from './db.js';
 import { navigate } from './router.js';
 
 export async function renderHistory(container) {
