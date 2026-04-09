@@ -25,6 +25,7 @@ export async function flushQueue() {
         headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify(entry),
       });
+      if (!resp.ok) break;
       const result = await resp.json();
       if (result.ok) await removeFromSyncQueue(entry.id);
     } catch (_) {
@@ -37,6 +38,7 @@ export async function pullFromGAS() {
   if (!GAS_URL || !navigator.onLine) return;
   try {
     const resp = await fetch(`${GAS_URL}?action=getAll`);
+    if (!resp.ok) return;
     const { ok, templates: remoteTemplates, workouts: remoteWorkouts } = await resp.json();
     if (!ok) return;
 
