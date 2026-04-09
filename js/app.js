@@ -1,4 +1,4 @@
-import { start as startRouter, register, navigate } from './router.js';
+import { start as startRouter, register } from './router.js';
 import { renderHome } from './home.js';
 import { renderWorkout } from './workout.js';
 import { renderTemplates } from './templates.js';
@@ -9,7 +9,7 @@ import { renderProgress } from './progress.js';
 import { initSync } from './sync.js';
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/workoutjournalsheet/sw.js').catch(() => {});
+  navigator.serviceWorker.register('/workout-journal-sheet/sw.js').catch(() => {});
 }
 
 register('#home', renderHome);

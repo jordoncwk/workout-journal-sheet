@@ -1,5 +1,5 @@
 const CACHE = 'workout-journal-v1';
-const BASE = '/workoutjournalsheet';
+const BASE = '/workout-journal-sheet';
 
 const SHELL = [
   BASE + '/',
