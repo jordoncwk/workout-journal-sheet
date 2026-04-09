@@ -1,8 +1,10 @@
 import { saveWorkout, addToSyncQueue } from './db.js';
 import { flushQueue } from './sync.js';
 import { navigate } from './router.js';
+import { formatRestTime } from './timer-utils.js';
 
 let timerInterval = null;
+const restTimerState = { interval: null, remaining: 0 };
 
 export function renderWorkout(container) {
   const state = getState();
@@ -56,6 +58,7 @@ function render(container, state) {
 
   html += `
     <div style="padding:16px; display:flex; flex-direction:column; gap:10px;">
+      <button class="btn btn-ghost btn-full" id="rest-timer-btn">Rest 2:00</button>
       <button class="btn btn-primary btn-full" id="finish-btn">Finish Workout</button>
     </div>`;
 
@@ -67,6 +70,35 @@ function render(container, state) {
     const el = document.getElementById('workout-timer');
     if (el) el.textContent = formatDuration(Date.now() - state.startedAt);
   }, 1000);
+
+  // Rest timer button
+  const restBtn = container.querySelector('#rest-timer-btn');
+  restBtn.addEventListener('click', () => {
+    if (restTimerState.interval) {
+      // Cancel running timer
+      clearInterval(restTimerState.interval);
+      restTimerState.interval = null;
+      restTimerState.remaining = 0;
+      restBtn.textContent = 'Rest 2:00';
+    } else {
+      // Start 2-minute countdown
+      restTimerState.remaining = 120;
+      restBtn.textContent = `Rest ${formatRestTime(restTimerState.remaining)}`;
+      restTimerState.interval = setInterval(() => {
+        restTimerState.remaining--;
+        const btn = document.getElementById('rest-timer-btn');
+        if (!btn) { clearInterval(restTimerState.interval); restTimerState.interval = null; return; }
+        if (restTimerState.remaining <= 0) {
+          clearInterval(restTimerState.interval);
+          restTimerState.interval = null;
+          btn.textContent = 'Rest 2:00';
+          if (navigator.vibrate) navigator.vibrate(500);
+        } else {
+          btn.textContent = `Rest ${formatRestTime(restTimerState.remaining)}`;
+        }
+      }, 1000);
+    }
+  });
 
   // Input changes
   container.querySelectorAll('input.set-input').forEach(input => {
@@ -151,6 +183,9 @@ async function finishWorkout(state) {
 function stopTimer() {
   clearInterval(timerInterval);
   timerInterval = null;
+  clearInterval(restTimerState.interval);
+  restTimerState.interval = null;
+  restTimerState.remaining = 0;
 }
 
 function formatDuration(ms) {
