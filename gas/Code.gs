@@ -49,11 +49,11 @@ function doGet(e) {
         };
       });
 
-      return json({ ok: true, templates, workouts });
+      return jsonOrJsonp(e, { ok: true, templates, workouts });
     }
-    return json({ ok: false, error: 'Unknown action' });
+    return jsonOrJsonp(e, { ok: false, error: 'Unknown action' });
   } catch (err) {
-    return json({ ok: false, error: err.message });
+    return jsonOrJsonp(e, { ok: false, error: err.message });
   }
 }
 
@@ -132,4 +132,14 @@ function json(obj) {
   return ContentService
     .createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+function jsonOrJsonp(e, obj) {
+  const cb = e && e.parameter && e.parameter.callback;
+  if (cb) {
+    return ContentService
+      .createTextOutput(`${cb}(${JSON.stringify(obj)})`)
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return json(obj);
 }

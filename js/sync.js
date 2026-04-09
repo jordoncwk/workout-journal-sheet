@@ -15,19 +15,38 @@ export async function initSync() {
   }
 }
 
+function jsonp(url) {
+  return new Promise((resolve, reject) => {
+    const cb = '__gas_' + Date.now();
+    const script = document.createElement('script');
+    script.src = `${url}&callback=${cb}`;
+    window[cb] = (data) => {
+      delete window[cb];
+      script.remove();
+      resolve(data);
+    };
+    script.onerror = () => {
+      delete window[cb];
+      script.remove();
+      reject(new Error('JSONP failed'));
+    };
+    document.head.appendChild(script);
+  });
+}
+
 export async function flushQueue() {
   if (!GAS_URL || !navigator.onLine) return;
   const queue = await getSyncQueue();
   for (const entry of queue) {
     try {
-      const resp = await fetch(GAS_URL, {
+      await fetch(GAS_URL, {
         method: 'POST',
+        mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify(entry),
       });
-      if (!resp.ok) break;
-      const result = await resp.json();
-      if (result.ok) await removeFromSyncQueue(entry.id);
+      // no-cors response is opaque — assume success
+      await removeFromSyncQueue(entry.id);
     } catch (_) {
       break; // network failed — retry on next online event
     }
@@ -37,9 +56,7 @@ export async function flushQueue() {
 export async function pullFromGAS() {
   if (!GAS_URL || !navigator.onLine) return;
   try {
-    const resp = await fetch(`${GAS_URL}?action=getAll`);
-    if (!resp.ok) return;
-    const { ok, templates: remoteTemplates, workouts: remoteWorkouts } = await resp.json();
+    const { ok, templates: remoteTemplates, workouts: remoteWorkouts } = await jsonp(`${GAS_URL}?action=getAll`);
     if (!ok) return;
 
     let changed = false;
