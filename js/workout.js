@@ -64,6 +64,12 @@ function render(container, state) {
 
   container.innerHTML = html;
 
+  // Restore rest button label if countdown is running
+  if (restTimerState.interval && restTimerState.remaining > 0) {
+    const restBtn = container.querySelector('#rest-timer-btn');
+    if (restBtn) restBtn.textContent = `Rest ${formatRestTime(restTimerState.remaining)}`;
+  }
+
   // Elapsed workout timer
   stopWorkoutTimer();
   timerInterval = setInterval(() => {
