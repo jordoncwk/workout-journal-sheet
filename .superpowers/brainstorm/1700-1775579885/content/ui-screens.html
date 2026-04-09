@@ -1,0 +1,119 @@
+<h2>UI Screens</h2>
+<p class="subtitle">Four main screens — click one to select your favourite layout feel</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="journal" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#0f0f0f;border-radius:8px;padding:12px;font-family:monospace;font-size:12px;color:#e0e0e0;min-height:200px">
+        <div style="background:#1a1a1a;border-radius:6px;padding:8px;margin-bottom:8px;display:flex;align-items:center;gap:8px">
+          <span style="color:#888">🔍</span>
+          <span style="color:#555">Search entries...</span>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+          <span style="background:#00bcd4;color:#000;padding:2px 8px;border-radius:12px;font-size:11px">All</span>
+          <span style="background:#1a1a1a;padding:2px 8px;border-radius:12px;font-size:11px">greetings</span>
+          <span style="background:#1a1a1a;padding:2px 8px;border-radius:12px;font-size:11px">food</span>
+          <span style="background:#1a1a1a;padding:2px 8px;border-radius:12px;font-size:11px">hsk1</span>
+        </div>
+        <div style="background:#1a1a1a;border-radius:6px;padding:10px;margin-bottom:6px">
+          <div style="font-size:22px;color:#fff;margin-bottom:2px">你好</div>
+          <div style="color:#00bcd4;font-size:12px">nǐ hǎo</div>
+          <div style="color:#aaa;font-size:11px">Hello</div>
+          <div style="color:#555;font-size:10px;margin-top:4px">greetings · Apr 8</div>
+        </div>
+        <div style="background:#1a1a1a;border-radius:6px;padding:10px;margin-bottom:6px">
+          <div style="font-size:22px;color:#fff;margin-bottom:2px">谢谢</div>
+          <div style="color:#00bcd4;font-size:12px">xiè xie</div>
+          <div style="color:#aaa;font-size:11px">Thank you</div>
+          <div style="color:#555;font-size:10px;margin-top:4px">greetings · Apr 7</div>
+        </div>
+        <div style="position:relative;height:30px">
+          <div style="position:absolute;right:0;bottom:0;background:#00bcd4;color:#000;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:bold">+</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Journal Feed</h3>
+      <p>Chronological list with tag filter chips and search bar at top. Big characters, pinyin in accent colour, English below. Floating + button to add.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="add" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#0f0f0f;border-radius:8px;padding:12px;font-family:monospace;font-size:12px;color:#e0e0e0;min-height:200px">
+        <div style="color:#888;margin-bottom:12px;font-size:11px">← Back &nbsp;&nbsp; New Entry</div>
+        <div style="margin-bottom:8px">
+          <div style="color:#888;font-size:10px;margin-bottom:3px">CHARACTERS</div>
+          <div style="background:#1a1a1a;border-radius:6px;padding:8px;font-size:24px">你好</div>
+        </div>
+        <div style="margin-bottom:8px">
+          <div style="color:#888;font-size:10px;margin-bottom:3px">PINYIN <span style="color:#00bcd4">(type ni3 hao3)</span></div>
+          <div style="background:#1a1a1a;border-radius:6px;padding:8px;color:#00bcd4">nǐ hǎo ✓</div>
+        </div>
+        <div style="margin-bottom:8px">
+          <div style="color:#888;font-size:10px;margin-bottom:3px">ENGLISH</div>
+          <div style="background:#1a1a1a;border-radius:6px;padding:8px">Hello</div>
+        </div>
+        <div style="margin-bottom:8px">
+          <div style="color:#888;font-size:10px;margin-bottom:3px">MY NOTES</div>
+          <div style="background:#1a1a1a;border-radius:6px;padding:8px;color:#aaa">My first greeting...</div>
+        </div>
+        <div style="background:#00bcd4;color:#000;border-radius:6px;padding:8px;text-align:center;font-weight:bold;margin-top:4px">Save Entry</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Add Entry Form</h3>
+      <p>Clean form with 4 fields. Pinyin converts automatically as you type. Clipboard paste pre-fills the characters field. Tags added at bottom.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="detail" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#0f0f0f;border-radius:8px;padding:12px;font-family:monospace;font-size:12px;color:#e0e0e0;min-height:200px">
+        <div style="color:#888;margin-bottom:8px;font-size:11px">← Back &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ✏️ Edit</div>
+        <div style="text-align:center;margin-bottom:8px">
+          <div style="font-size:40px">你好</div>
+          <div style="color:#00bcd4;font-size:14px">nǐ hǎo &nbsp; 🔊</div>
+          <div style="color:#aaa;font-size:12px;margin-top:2px">Hello</div>
+        </div>
+        <div style="background:#1a1a1a;border-radius:6px;padding:8px;margin-bottom:6px">
+          <div style="color:#888;font-size:10px;margin-bottom:4px">CHARACTER BREAKDOWN</div>
+          <div style="font-size:11px">你 → 亻(person) + 尔(you)</div>
+          <div style="font-size:11px">好 → 女(woman) + 子(child)</div>
+        </div>
+        <div style="background:#1a1a1a;border-radius:6px;padding:8px">
+          <div style="color:#888;font-size:10px;margin-bottom:4px">MY NOTES</div>
+          <div style="color:#aaa;font-size:11px">Used when greeting my teacher today</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Entry Detail</h3>
+      <p>Full view of an entry. Large characters, speaker icon for audio, radical breakdown panel, your notes. Edit button top right.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="flashcard" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#0f0f0f;border-radius:8px;padding:12px;font-family:monospace;font-size:12px;color:#e0e0e0;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center">
+        <div style="color:#888;font-size:10px;margin-bottom:16px">Card 12 of 45 &nbsp;·&nbsp; greetings</div>
+        <div style="background:#1a1a1a;border-radius:10px;padding:24px 32px;text-align:center;width:80%;margin-bottom:16px">
+          <div style="font-size:36px;margin-bottom:8px">你好</div>
+          <div style="color:#555;font-size:11px">tap to reveal</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <div style="background:#1a1a1a;padding:6px 14px;border-radius:6px;font-size:11px">← Skip</div>
+          <div style="background:#00bcd4;color:#000;padding:6px 14px;border-radius:6px;font-size:11px">Reveal →</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Flashcard Mode</h3>
+      <p>Full-screen card shows characters. Tap to reveal pinyin + English. Skip or mark as known. Filter by tag before starting.</p>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:16px">Check **http://localhost:59371** — tap any card to select. All four screens will be in the app.</p>

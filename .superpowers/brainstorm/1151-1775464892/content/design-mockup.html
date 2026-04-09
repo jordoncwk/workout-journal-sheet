@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design Mockup</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #1a1f2e; color: #ccc; padding: 24px 16px; }
+  h2 { color: #f0f4ff; font-size: 20px; margin-bottom: 6px; }
+  .subtitle { color: #a0aec0; font-size: 14px; margin-bottom: 28px; }
+
+  .section-title { font-size: 12px; color: #a0aec0; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin: 28px 0 12px; }
+
+  /* Phone frame */
+  .phone {
+    width: 340px;
+    margin: 0 auto;
+    background: #0f1117;
+    border-radius: 28px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.6), 0 0 0 1px #2a3347;
+  }
+
+  /* Variables preview */
+  :root {
+    --bg-base: #0f1117;
+    --bg-card: #161b27;
+    --bg-input: #1e2535;
+    --border: #2a3347;
+    --text-primary: #f0f4ff;
+    --text-secondary: #a0aec0;
+    --accent: #06b6d4;
+    --accent-dark: #0891b2;
+    --success: #0d9488;
+    --success-bg: rgba(13,148,136,0.15);
+    --danger: #ef4444;
+  }
+
+  /* Header */
+  .app-header {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .app-header h1 { font-size: 18px; font-weight: 700; flex: 1; color: var(--text-primary); }
+  .timer-badge {
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    background: rgba(6,182,212,0.15);
+    color: var(--accent);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    border: 1px solid rgba(6,182,212,0.25);
+  }
+
+  /* Exercise card */
+  .ex-card {
+    background: var(--bg-card);
+    border-radius: 16px;
+    margin: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .ex-header {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    gap: 12px;
+  }
+  .ex-border { width: 4px; height: 40px; border-radius: 3px; background: var(--accent); flex-shrink: 0; }
+  .ex-name { font-size: 17px; font-weight: 700; color: var(--text-primary); flex: 1; }
+  .ex-sets-badge { font-size: 12px; color: var(--text-secondary); background: var(--bg-input); padding: 4px 10px; border-radius: 20px; }
+  .ex-body { padding: 0 16px 14px; }
+  .best-weight { font-size: 13px; color: var(--text-secondary); margin-bottom: 10px; }
+
+  .set-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .set-num { font-size: 14px; color: var(--text-secondary); width: 20px; text-align: center; font-weight: 600; }
+  .set-input {
+    flex: 1;
+    background: var(--bg-input);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 8px;
+    font-size: 17px;
+    text-align: center;
+    color: var(--text-primary);
+  }
+  .set-input.logged {
+    background: var(--success-bg);
+    border-color: var(--success);
+    color: #2dd4bf;
+    font-weight: 700;
+  }
+  .set-label { font-size: 11px; color: var(--text-secondary); text-align: center; }
+  .log-btn {
+    padding: 11px 14px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .log-btn.logged { background: var(--success); }
+
+  /* Bottom nav */
+  .bottom-nav {
+    display: flex;
+    background: rgba(15,17,23,0.97);
+    border-top: 1px solid var(--border);
+    padding: 10px 0 14px;
+    backdrop-filter: blur(20px);
+  }
+  .nav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+  .nav-btn.active { color: var(--accent); }
+  .nav-icon { font-size: 22px; line-height: 1; }
+
+  /* Home page cards */
+  .home-body { padding: 12px; }
+  .stat-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .stat-card {
+    flex: 1;
+    background: var(--bg-card);
+    border-radius: 14px;
+    padding: 14px;
+    border: 1px solid var(--border);
+  }
+  .stat-label { font-size: 11px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .stat-value { font-size: 22px; font-weight: 800; color: var(--text-primary); }
+  .stat-sub { font-size: 11px; color: var(--accent); margin-top: 3px; font-weight: 600; }
+
+  .cta-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    font-size: 17px;
+    font-weight: 700;
+    margin-top: 4px;
+    cursor: pointer;
+  }
+  .ghost-btn {
+    width: 100%;
+    padding: 14px;
+    background: transparent;
+    color: var(--accent);
+    border: 1.5px solid var(--accent);
+    border-radius: 14px;
+    font-size: 17px;
+    font-weight: 600;
+    margin-top: 8px;
+    cursor: pointer;
+  }
+
+  /* Columns layout */
+  .screens { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
+  .screen-wrap { text-align: center; }
+  .screen-label { font-size: 12px; color: #a0aec0; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+
+<h2>Dark Theme — Design Preview</h2>
+<p class="subtitle">Cyan / Teal accent · Dark slate background · All 4 HTML files</p>
+
+<div class="screens">
+
+  <!-- Home screen -->
+  <div class="screen-wrap">
+    <div class="screen-label">Home / Dashboard</div>
+    <div class="phone">
+      <div class="app-header">
+        <h1>Workout Journal</h1>
+      </div>
+      <div class="home-body">
+        <div class="stat-row">
+          <div class="stat-card">
+            <div class="stat-label">This Week</div>
+            <div class="stat-value">4</div>
+            <div class="stat-sub">workouts</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Volume</div>
+            <div class="stat-value">12.4k</div>
+            <div class="stat-sub">↑ kg lifted</div>
+          </div>
+        </div>
+        <button class="cta-btn">Start Workout</button>
+        <button class="ghost-btn">View Templates</button>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-btn active"><div class="nav-icon">🏠</div>Home</div>
+        <div class="nav-btn"><div class="nav-icon">📋</div>Templates</div>
+        <div class="nav-btn"><div class="nav-icon">📅</div>History</div>
+        <div class="nav-btn"><div class="nav-icon">📈</div>Progress</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active workout -->
+  <div class="screen-wrap">
+    <div class="screen-label">Active Workout</div>
+    <div class="phone">
+      <div class="app-header">
+        <h1>Push Day A</h1>
+        <div class="timer-badge">12:34</div>
+      </div>
+      <div class="ex-card">
+        <div class="ex-header">
+          <div class="ex-border"></div>
+          <div class="ex-name">Bench Press</div>
+          <div class="ex-sets-badge">3 sets</div>
+        </div>
+        <div class="ex-body">
+          <div class="best-weight">Best: 110 kg × 5</div>
+          <div class="set-row">
+            <div class="set-num">1</div>
+            <div>
+              <div class="set-input logged">100</div>
+              <div class="set-label">kg</div>
+            </div>
+            <div>
+              <div class="set-input logged">8</div>
+              <div class="set-label">reps</div>
+            </div>
+            <div class="log-btn logged">✓</div>
+          </div>
+          <div class="set-row">
+            <div class="set-num">2</div>
+            <div>
+              <div class="set-input">100</div>
+              <div class="set-label">kg</div>
+            </div>
+            <div>
+              <div class="set-input">8</div>
+              <div class="set-label">reps</div>
+            </div>
+            <div class="log-btn">Log</div>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-btn"><div class="nav-icon">🏠</div>Home</div>
+        <div class="nav-btn"><div class="nav-icon">📋</div>Templates</div>
+        <div class="nav-btn"><div class="nav-icon">📅</div>History</div>
+        <div class="nav-btn"><div class="nav-icon">📈</div>Progress</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top:32px; background:#161b27; border-radius:14px; padding:20px; border:1px solid #2a3347; max-width:700px; margin-left:auto; margin-right:auto;">
+  <div style="font-size:13px; color:#a0aec0; font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-bottom:14px;">CSS Variables (single source of truth)</div>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+    <div style="display:flex;align-items:center;gap:10px;"><div style="width:14px;height:14px;border-radius:4px;background:#0f1117;border:1px solid #444;"></div><span style="color:#e2e8f0;font-size:13px;">--bg-base: #0f1117</span></div>
+    <div style="display:flex;align-items:center;gap:10px;"><div style="width:14px;height:14px;border-radius:4px;background:#161b27;border:1px solid #444;"></div><span style="color:#e2e8f0;font-size:13px;">--bg-card: #161b27</span></div>
+    <div style="display:flex;align-items:center;gap:10px;"><div style="width:14px;height:14px;border-radius:4px;background:#1e2535;border:1px solid #444;"></div><span style="color:#e2e8f0;font-size:13px;">--bg-input: #1e2535</span></div>
+    <div style="display:flex;align-items:center;gap:10px;"><div style="width:14px;height:14px;border-radius:4px;background:#2a3347;border:1px solid #444;"></div><span style="color:#e2e8f0;font-size:13px;">--border: #2a3347</span></div>
+    <div style="display:flex;align-items:center;gap:10px;"><div style="width:14px;height:14px;border-radius:4px;background:#f0f4ff;"></div><span style="color:#e2e8f0;font-size:13px;">--text-primary: #f0f4ff</span></div>
+    <div style="display:flex;align-items:center;gap:10px;"><div style="width:14px;height:14px;border-radius:4px;background:#a0aec0;"></div><span style="color:#e2e8f0;font-size:13px;">--text-secondary: #a0aec0</span></div>
+    <div style="display:flex;align-items:center;gap:10px;"><div style="width:14px;height:14px;border-radius:4px;background:#06b6d4;"></div><span style="color:#e2e8f0;font-size:13px;">--accent: #06b6d4</span></div>
+    <div style="display:flex;align-items:center;gap:10px;"><div style="width:14px;height:14px;border-radius:4px;background:#0d9488;"></div><span style="color:#e2e8f0;font-size:13px;">--success: #0d9488</span></div>
+    <div style="display:flex;align-items:center;gap:10px;"><div style="width:14px;height:14px;border-radius:4px;background:#ef4444;"></div><span style="color:#e2e8f0;font-size:13px;">--danger: #ef4444</span></div>
+  </div>
+</div>
+
+</body>
+</html>

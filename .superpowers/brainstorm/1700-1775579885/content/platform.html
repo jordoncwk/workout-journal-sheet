@@ -1,0 +1,42 @@
+<h2>Platform Options for Your Mandarin Journal</h2>
+<p class="subtitle">You need: iPhone support, online + offline access, quick entry</p>
+
+<div class="options">
+  <div class="option" data-choice="pwa" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Progressive Web App (PWA)</h3>
+      <p>A website that installs on your iPhone home screen like an app. Works fully offline. No App Store needed — just open in Safari and tap "Add to Home Screen". Data syncs to the cloud when online.</p>
+      <div class="pros-cons" style="margin-top:12px">
+        <div class="pros"><h4>Pros</h4><ul><li>Install instantly, no App Store</li><li>True offline support</li><li>Free hosting (GitHub Pages etc.)</li><li>Easy to build and update</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Safari has some PWA limitations on iOS</li><li>Slightly less "native" feel</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="expo" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Expo / React Native App</h3>
+      <p>A real native iPhone app built with React Native. Full offline support, native UI components. Distributed via TestFlight (no App Store approval needed for personal use).</p>
+      <div class="pros-cons" style="margin-top:12px">
+        <div class="pros"><h4>Pros</h4><ul><li>Native look and feel</li><li>Best offline experience</li><li>Access to device features</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>More complex setup</li><li>Requires Xcode + Apple dev account ($99/yr)</li><li>TestFlight install needed</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="gas" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Google Apps Script (like your workout journal)</h3>
+      <p>Same tech as your existing project — runs in Google Sheets, accessible via browser on iPhone. Data lives in Google Sheets automatically.</p>
+      <div class="pros-cons" style="margin-top:12px">
+        <div class="pros"><h4>Pros</h4><ul><li>Familiar — you already have one running</li><li>Data in Google Sheets (easy to view/export)</li><li>No hosting setup</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>No offline support</li><li>Slow on mobile</li><li>Not installable as an app</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:24px">My recommendation: <strong>Option A (PWA)</strong> — offline + iPhone home screen without any App Store friction. Fastest to build and use.</p>
