@@ -27,19 +27,21 @@ export async function renderTemplateEdit(container, params) {
       html += `
         <div class="exercise-row">
           <input class="exercise-name-input" type="text" placeholder="Exercise name" value="${ex.exercise_name}" data-i="${i}">
-          <div>
-            <div class="label-sm">Sets</div>
-            <input class="num-input" type="number" min="1" value="${ex.default_sets}" data-field="default_sets" data-i="${i}">
+          <div class="exercise-row-controls">
+            <div>
+              <div class="label-sm">Sets</div>
+              <input class="num-input" type="number" min="1" value="${ex.default_sets}" data-field="default_sets" data-i="${i}">
+            </div>
+            <div>
+              <div class="label-sm">Reps</div>
+              <input class="num-input" type="number" min="1" value="${ex.default_reps}" data-field="default_reps" data-i="${i}">
+            </div>
+            <div style="display:flex;gap:4px;align-items:center;">
+              ${i > 0 ? `<button class="btn btn-ghost btn-sm move-btn" data-i="${i}" data-dir="-1">↑</button>` : '<div style="width:36px"></div>'}
+              ${i < exercises.length - 1 ? `<button class="btn btn-ghost btn-sm move-btn" data-i="${i}" data-dir="1">↓</button>` : '<div style="width:36px"></div>'}
+            </div>
+            <button class="btn btn-danger btn-sm remove-btn" data-i="${i}">✕</button>
           </div>
-          <div>
-            <div class="label-sm">Reps</div>
-            <input class="num-input" type="number" min="1" value="${ex.default_reps}" data-field="default_reps" data-i="${i}">
-          </div>
-          <div style="display:flex;flex-direction:column;gap:4px;">
-            ${i > 0 ? `<button class="btn btn-ghost btn-sm move-btn" data-i="${i}" data-dir="-1">↑</button>` : '<div style="height:34px"></div>'}
-            ${i < exercises.length - 1 ? `<button class="btn btn-ghost btn-sm move-btn" data-i="${i}" data-dir="1">↓</button>` : '<div style="height:34px"></div>'}
-          </div>
-          <button class="btn btn-danger btn-sm remove-btn" data-i="${i}">✕</button>
         </div>`;
     });
 

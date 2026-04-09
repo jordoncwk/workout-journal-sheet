@@ -1,4 +1,4 @@
-const CACHE = 'workout-journal-v3';
+const CACHE = 'workout-journal-v4';
 const BASE = '/workout-journal-sheet';
 
 const SHELL = [
