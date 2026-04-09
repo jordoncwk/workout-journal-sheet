@@ -59,9 +59,6 @@ function render(container, state) {
       <button class="btn btn-primary btn-full" id="finish-btn">Finish Workout</button>
     </div>`;
 
-  // Rest timer display
-  html += `<div id="rest-timer" style="display:none; text-align:center; padding:12px; font-size:1rem; color:var(--accent);"></div>`;
-
   container.innerHTML = html;
 
   // Elapsed workout timer
@@ -88,7 +85,6 @@ function render(container, state) {
       s.logged = !s.logged;
       saveState(state);
       btn.classList.toggle('logged', s.logged);
-      if (s.logged) startRestTimer(container);
     });
   });
 
@@ -123,28 +119,6 @@ function render(container, state) {
   container.querySelector('#finish-btn').addEventListener('click', () => finishWorkout(state));
 }
 
-function startRestTimer(container) {
-  const REST_SECONDS = 90;
-  let remaining = REST_SECONDS;
-  const el = document.getElementById('rest-timer');
-  if (!el) return;
-  el.style.display = 'block';
-
-  clearInterval(window._restInterval);
-  window._restInterval = setInterval(() => {
-    remaining--;
-    const restEl = document.getElementById('rest-timer');
-    if (!restEl) { clearInterval(window._restInterval); return; }
-    if (remaining <= 0) {
-      clearInterval(window._restInterval);
-      restEl.style.display = 'none';
-    } else {
-      restEl.textContent = `Rest: ${remaining}s`;
-    }
-  }, 1000);
-  el.textContent = `Rest: ${remaining}s`;
-}
-
 async function finishWorkout(state) {
   stopTimer();
   const finishedAt = Date.now();
@@ -177,7 +151,6 @@ async function finishWorkout(state) {
 function stopTimer() {
   clearInterval(timerInterval);
   timerInterval = null;
-  clearInterval(window._restInterval);
 }
 
 function formatDuration(ms) {
