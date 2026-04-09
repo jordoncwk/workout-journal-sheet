@@ -129,12 +129,7 @@ select {
 }
 .set-num { font-size: 0.82rem; color: var(--text-muted); width: 32px; }
 .set-input { flex: 1; padding: 10px; font-size: 15px; text-align: center; }
-.set-log-btn {
-  width: 36px; height: 36px; border-radius: 50%; border: none; cursor: pointer;
-  background: var(--surface2); color: var(--text-muted); font-size: 18px;
-  display: flex; align-items: center; justify-content: center; transition: all 0.15s;
-}
-.set-log-btn.logged { background: var(--accent); color: #000; }
+.set-row.filled { background: rgba(76, 175, 80, 0.15); }
 .timer-badge {
   font-size: 15px; font-variant-numeric: tabular-nums;
   background: rgba(0,188,212,0.15); color: var(--accent);

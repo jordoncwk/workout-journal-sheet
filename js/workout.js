@@ -48,12 +48,12 @@ function render(container, state) {
         </div>`;
     if (!isCollapsed) {
       ex.sets.forEach((s, si) => {
+        const filled = s.weight_kg !== '' && s.reps !== '' ? ' filled' : '';
         html += `
-          <div class="set-row" data-ei="${ei}" data-si="${si}">
+          <div class="set-row${filled}" data-ei="${ei}" data-si="${si}">
             <span class="set-num">${si + 1}</span>
             <input class="set-input" type="number" inputmode="decimal" placeholder="kg" value="${s.weight_kg}" data-field="weight_kg" data-ei="${ei}" data-si="${si}">
             <input class="set-input" type="number" inputmode="numeric" placeholder="reps" value="${s.reps}" data-field="reps" data-ei="${ei}" data-si="${si}">
-            <button class="set-log-btn ${s.logged ? 'logged' : ''}" data-ei="${ei}" data-si="${si}">✓</button>
           </div>`;
       });
     }
@@ -114,21 +114,14 @@ function render(container, state) {
 
   // Input changes
   container.querySelectorAll('input.set-input').forEach(input => {
-    input.addEventListener('change', () => {
+    input.addEventListener('input', () => {
       const ei = +input.dataset.ei, si = +input.dataset.si, field = input.dataset.field;
       state.exercises[ei].sets[si][field] = input.value;
       saveState(state);
-    });
-  });
-
-  // Log set toggle
-  container.querySelectorAll('.set-log-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const ei = +btn.dataset.ei, si = +btn.dataset.si;
-      const s = state.exercises[ei].sets[si];
-      s.logged = !s.logged;
-      saveState(state);
-      btn.classList.toggle('logged', s.logged);
+      const row = input.closest('.set-row');
+      const inputs = row.querySelectorAll('.set-input');
+      const allFilled = Array.from(inputs).every(i => i.value !== '');
+      row.classList.toggle('filled', allFilled);
     });
   });
 
@@ -137,7 +130,7 @@ function render(container, state) {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const ei = +btn.dataset.ei;
-      state.exercises[ei].sets.push({ weight_kg: '', reps: '', logged: false });
+      state.exercises[ei].sets.push({ weight_kg: '', reps: '' });
       saveState(state);
       render(container, state);
     });
@@ -160,7 +153,7 @@ function render(container, state) {
   container.querySelector('#add-ex-btn').addEventListener('click', () => {
     const name = prompt('Exercise name:');
     if (!name || !name.trim()) return;
-    state.exercises.push({ exercise_name: name.trim(), sets: [{ weight_kg: '', reps: '', logged: false }] });
+    state.exercises.push({ exercise_name: name.trim(), sets: [{ weight_kg: '', reps: '' }] });
     saveState(state);
     render(container, state);
   });
@@ -190,7 +183,7 @@ async function finishWorkout(state) {
     updatedAt: finishedAt,
     exercises: state.exercises.map(ex => ({
       exercise_name: ex.exercise_name,
-      sets: ex.sets.filter(s => s.logged && s.weight_kg !== '' && s.reps !== '').map(s => ({
+      sets: ex.sets.filter(s => s.weight_kg !== '' && s.reps !== '').map(s => ({
         weight_kg: parseFloat(s.weight_kg) || 0,
         reps: parseInt(s.reps) || 0,
         logged: true,
