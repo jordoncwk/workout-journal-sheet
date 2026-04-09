@@ -4,7 +4,7 @@ import { navigate } from './router.js';
 import { formatRestTime } from './timer-utils.js';
 
 let timerInterval = null;
-const restTimerState = { interval: null, remaining: 0 };
+const restTimerState = { interval: null, endTime: null };
 
 export function renderWorkout(container) {
   const state = getState();
@@ -65,9 +65,10 @@ function render(container, state) {
   container.innerHTML = html;
 
   // Restore rest button label if countdown is running
-  if (restTimerState.interval && restTimerState.remaining > 0) {
+  if (restTimerState.interval && restTimerState.endTime) {
+    const remaining = Math.ceil((restTimerState.endTime - Date.now()) / 1000);
     const restBtn = container.querySelector('#rest-timer-btn');
-    if (restBtn) restBtn.textContent = `Rest ${formatRestTime(restTimerState.remaining)}`;
+    if (restBtn && remaining > 0) restBtn.textContent = `Rest ${formatRestTime(remaining)}`;
   }
 
   // Elapsed workout timer
@@ -84,23 +85,24 @@ function render(container, state) {
       // Cancel running timer
       clearInterval(restTimerState.interval);
       restTimerState.interval = null;
-      restTimerState.remaining = 0;
+      restTimerState.endTime = null;
       restBtn.textContent = 'Rest 2:00';
     } else {
-      // Start 2-minute countdown
-      restTimerState.remaining = 120;
-      restBtn.textContent = `Rest ${formatRestTime(restTimerState.remaining)}`;
+      // Start 2-minute countdown using end timestamp so background throttling doesn't drift
+      restTimerState.endTime = Date.now() + 120 * 1000;
+      restBtn.textContent = `Rest ${formatRestTime(120)}`;
       restTimerState.interval = setInterval(() => {
-        restTimerState.remaining--;
+        const remaining = Math.ceil((restTimerState.endTime - Date.now()) / 1000);
         const btn = document.getElementById('rest-timer-btn');
         if (!btn) { clearInterval(restTimerState.interval); restTimerState.interval = null; return; }
-        if (restTimerState.remaining <= 0) {
+        if (remaining <= 0) {
           clearInterval(restTimerState.interval);
           restTimerState.interval = null;
+          restTimerState.endTime = null;
           btn.textContent = 'Rest 2:00';
           if (navigator.vibrate) navigator.vibrate(500);
         } else {
-          btn.textContent = `Rest ${formatRestTime(restTimerState.remaining)}`;
+          btn.textContent = `Rest ${formatRestTime(remaining)}`;
         }
       }, 1000);
     }
@@ -195,7 +197,7 @@ function stopTimer() {
   stopWorkoutTimer();
   clearInterval(restTimerState.interval);
   restTimerState.interval = null;
-  restTimerState.remaining = 0;
+  restTimerState.endTime = null;
 }
 
 function formatDuration(ms) {
