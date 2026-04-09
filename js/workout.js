@@ -4,7 +4,7 @@ import { navigate } from './router.js';
 import { formatRestTime } from './timer-utils.js';
 
 let timerInterval = null;
-const restTimerState = { interval: null, endTime: null };
+const restTimerState = { interval: null, endTime: null, audioCtx: null };
 const collapsedExercises = new Set();
 
 export function renderWorkout(container) {
@@ -90,10 +90,16 @@ function render(container, state) {
       clearInterval(restTimerState.interval);
       restTimerState.interval = null;
       restTimerState.endTime = null;
+      if (restTimerState.audioCtx) { restTimerState.audioCtx.close(); restTimerState.audioCtx = null; }
       restBtn.textContent = 'Rest 2:00';
     } else {
       // Start 2-minute countdown using end timestamp so background throttling doesn't drift
       restTimerState.endTime = Date.now() + 120 * 1000;
+      try {
+        restTimerState.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      } catch (e) {
+        console.warn('AudioContext unavailable:', e);
+      }
       restBtn.textContent = `Rest ${formatRestTime(120)}`;
       restTimerState.interval = setInterval(() => {
         const remaining = Math.ceil((restTimerState.endTime - Date.now()) / 1000);
@@ -105,6 +111,22 @@ function render(container, state) {
           restTimerState.endTime = null;
           btn.textContent = 'Rest 2:00';
           if (navigator.vibrate) navigator.vibrate(500);
+          if (restTimerState.audioCtx) {
+            const osc = restTimerState.audioCtx.createOscillator();
+            const gain = restTimerState.audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = 880;
+            gain.gain.value = 0.4;
+            osc.connect(gain);
+            gain.connect(restTimerState.audioCtx.destination);
+            osc.start();
+            osc.stop(restTimerState.audioCtx.currentTime + 0.3);
+            const ctx = restTimerState.audioCtx;
+            restTimerState.audioCtx = null;
+            osc.onended = () => ctx.close();
+          }
+          btn.classList.add('rest-timer-flash');
+          btn.addEventListener('animationend', () => btn.classList.remove('rest-timer-flash'), { once: true });
         } else {
           btn.textContent = `Rest ${formatRestTime(remaining)}`;
         }
@@ -209,6 +231,7 @@ function stopTimer() {
   clearInterval(restTimerState.interval);
   restTimerState.interval = null;
   restTimerState.endTime = null;
+  if (restTimerState.audioCtx) { restTimerState.audioCtx.close(); restTimerState.audioCtx = null; }
   collapsedExercises.clear();
 }
 

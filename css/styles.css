@@ -137,6 +137,14 @@ select {
   border: 1px solid rgba(0,188,212,0.25);
 }
 
+@keyframes rest-timer-flash {
+  0%   { background: rgba(0, 188, 212, 0.8); }
+  33%  { background: transparent; }
+  66%  { background: rgba(0, 188, 212, 0.8); }
+  100% { background: transparent; }
+}
+.rest-timer-flash { animation: rest-timer-flash 1s ease-out; }
+
 /* ── History ── */
 .history-card {
   background: var(--surface); border-radius: 14px;
