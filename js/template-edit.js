@@ -1,6 +1,7 @@
 import { getTemplate, saveTemplate, deleteTemplate, addToSyncQueue } from './db.js';
 import { flushQueue } from './sync.js';
 import { navigate } from './router.js';
+import { attachAutocomplete } from './presets.js';
 
 export async function renderTemplateEdit(container, params) {
   const id = params.get('id');
@@ -139,6 +140,7 @@ export async function renderTemplateEdit(container, params) {
         navigate('#templates');
       });
     }
+    attachAutocomplete(container.querySelector('#new-ex-input'));
   }
 
   render();
