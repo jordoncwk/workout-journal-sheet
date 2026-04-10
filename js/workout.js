@@ -61,9 +61,9 @@ function render(container, state, exerciseStats = {}) {
       <div class="ex-card" data-ei="${ei}">
         <div class="ex-card-header" data-ei="${ei}">
           <span class="ex-card-name">${isCollapsed ? '▸' : '▾'} ${ex.exercise_name}</span>
-          ${statsHtml}
           <button class="btn btn-ghost btn-sm add-set-btn" data-ei="${ei}">+ Set</button>
-        </div>`;
+        </div>
+        ${statsHtml}`;
     if (!isCollapsed) {
       ex.sets.forEach((s, si) => {
         const filled = s.weight_kg !== '' && s.reps !== '' ? ' filled' : '';
