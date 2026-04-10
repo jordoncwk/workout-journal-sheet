@@ -1,4 +1,4 @@
-import { buildExerciseStats } from '../js/workout-stats.js';
+import { buildExerciseStats, buildExerciseHistory } from '../js/workout-stats.js';
 
 const workouts = [
   {
@@ -87,4 +87,67 @@ test('last tiebreaks on most reps', () => {
   const stats = buildExerciseStats(ws, ['deadlift']);
   // w2 is most recent, both 170kg sets, should pick the one with more reps
   expect(stats['deadlift'].last).toEqual({ weight_kg: 170, reps: 8 });
+});
+
+// ── buildExerciseHistory ──
+
+const historyWorkouts = [
+  {
+    id: 'h1',
+    finishedAt: 1000,
+    exercises: [
+      { exercise_name: 'Bench Press', sets: [{ weight_kg: 80, reps: 8 }, { weight_kg: 90, reps: 5 }] },
+    ],
+  },
+  {
+    id: 'h2',
+    finishedAt: 2000,
+    exercises: [
+      { exercise_name: 'Bench Press', sets: [{ weight_kg: 85, reps: 6 }] },
+      { exercise_name: 'Squat', sets: [{ weight_kg: 100, reps: 5 }] },
+    ],
+  },
+  {
+    id: 'h3',
+    finishedAt: 3000,
+    exercises: [
+      { exercise_name: 'Bench Press', sets: [{ weight_kg: 92, reps: 4 }, { weight_kg: 88, reps: 6 }] },
+    ],
+  },
+];
+
+test('buildExerciseHistory returns one point per session sorted oldest first', () => {
+  const history = buildExerciseHistory(historyWorkouts, 'bench press');
+  expect(history).toHaveLength(3);
+  expect(history[0].date).toBe(1000);
+  expect(history[1].date).toBe(2000);
+  expect(history[2].date).toBe(3000);
+});
+
+test('buildExerciseHistory picks best set per session', () => {
+  const history = buildExerciseHistory(historyWorkouts, 'bench press');
+  // h1: best is 90kg×5
+  expect(history[0]).toEqual({ date: 1000, weight_kg: 90, reps: 5 });
+  // h2: only 85kg×6
+  expect(history[1]).toEqual({ date: 2000, weight_kg: 85, reps: 6 });
+  // h3: best is 92kg×4
+  expect(history[2]).toEqual({ date: 3000, weight_kg: 92, reps: 4 });
+});
+
+test('buildExerciseHistory matching is case-insensitive', () => {
+  const history = buildExerciseHistory(historyWorkouts, 'BENCH PRESS');
+  expect(history).toHaveLength(3);
+});
+
+test('buildExerciseHistory returns empty array when exercise not found', () => {
+  const history = buildExerciseHistory(historyWorkouts, 'deadlift');
+  expect(history).toEqual([]);
+});
+
+test('buildExerciseHistory tiebreaks on most reps', () => {
+  const ws = [{ id: 'w1', finishedAt: 5000, exercises: [
+    { exercise_name: 'OHP', sets: [{ weight_kg: 60, reps: 5 }, { weight_kg: 60, reps: 8 }] },
+  ]}];
+  const history = buildExerciseHistory(ws, 'ohp');
+  expect(history[0]).toEqual({ date: 5000, weight_kg: 60, reps: 8 });
 });

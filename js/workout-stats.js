@@ -54,3 +54,37 @@ export function buildExerciseStats(workouts, exerciseNames) {
 
   return result;
 }
+
+/**
+ * Returns one data point per session for a given exercise, sorted oldest-first.
+ * Each point is the best set (heaviest weight, tiebreak most reps) from that session.
+ * @param {Array} workouts - All saved workout objects from history
+ * @param {string} exerciseName - Exercise name, matched case-insensitively
+ * @returns {Array<{ date: number, weight_kg: number, reps: number }>}
+ */
+export function buildExerciseHistory(workouts, exerciseName) {
+  const key = exerciseName.toLowerCase();
+  const points = [];
+
+  for (const workout of workouts) {
+    for (const ex of workout.exercises) {
+      if (ex.exercise_name.toLowerCase() !== key) continue;
+
+      let best = null;
+      for (const set of ex.sets) {
+        if (
+          best === null ||
+          set.weight_kg > best.weight_kg ||
+          (set.weight_kg === best.weight_kg && set.reps > best.reps)
+        ) {
+          best = { weight_kg: set.weight_kg, reps: set.reps };
+        }
+      }
+      if (best !== null) {
+        points.push({ date: workout.finishedAt, weight_kg: best.weight_kg, reps: best.reps });
+      }
+    }
+  }
+
+  return points.sort((a, b) => a.date - b.date);
+}
