@@ -118,8 +118,9 @@ select {
   border: 1px solid var(--surface2);
 }
 .ex-card-header { padding: 14px 16px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
-.ex-card-name { font-size: 1rem; font-weight: 600; flex: 1; }
-.ex-stats { font-size: 11px; color: var(--text-muted); padding: 0 16px 8px 20px; }
+.ex-card-title { display: flex; flex-direction: column; flex: 1; gap: 2px; }
+.ex-card-name { font-size: 1rem; font-weight: 600; }
+.ex-stats { font-size: 11px; color: var(--text-muted); padding-left: 20px; }
 .best-badge {
   font-size: 0.75rem; color: var(--text-muted);
   background: var(--surface2); border-radius: 8px; padding: 3px 8px;
