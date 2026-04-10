@@ -117,7 +117,7 @@ select {
   margin: 10px 12px; overflow: hidden;
   border: 1px solid var(--surface2);
 }
-.ex-card-header { padding: 14px 16px; display: flex; align-items: center; gap: 10px; cursor: pointer; flex-wrap: wrap; }
+.ex-card-header { padding: 14px 16px; display: flex; align-items: center; column-gap: 10px; cursor: pointer; flex-wrap: wrap; }
 .ex-card-name { font-size: 1rem; font-weight: 600; flex: 1; }
 .ex-stats { font-size: 11px; color: var(--text-muted); flex-basis: 100%; padding: 0 0 4px 20px; }
 .best-badge {
