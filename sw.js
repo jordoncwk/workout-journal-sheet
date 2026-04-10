@@ -1,4 +1,4 @@
-const CACHE = 'workout-journal-v6';
+const CACHE = 'workout-journal-v7';
 const BASE = '/workout-journal-sheet';
 
 const SHELL = [
@@ -14,6 +14,7 @@ const SHELL = [
   BASE + '/js/home.js',
   BASE + '/js/workout.js',
   BASE + '/js/workout-stats.js',
+  BASE + '/js/presets.js',
   BASE + '/js/templates.js',
   BASE + '/js/template-edit.js',
   BASE + '/js/history.js',
