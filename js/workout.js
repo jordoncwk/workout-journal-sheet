@@ -13,7 +13,12 @@ export async function renderWorkout(container) {
   if (!state) { navigate('#home'); return; }
 
   stopWorkoutTimer();
-  const allWorkouts = await listWorkouts();
+  let allWorkouts = [];
+  try {
+    allWorkouts = await listWorkouts();
+  } catch (err) {
+    console.error('Failed to load workout history for stats:', err);
+  }
   const exerciseNames = state.exercises.map(ex => ex.exercise_name);
   const exerciseStats = buildExerciseStats(allWorkouts, exerciseNames);
   render(container, state, exerciseStats);
