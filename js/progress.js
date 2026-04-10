@@ -83,7 +83,7 @@ export async function renderProgress(container) {
         <div style="font-size:0.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Personal Records</div>
         ${prs.map(pr => `
           <div class="pr-row">
-            <span class="pr-name">${pr.name}</span>
+            <span class="pr-name">${esc(pr.name)}</span>
             <span class="pr-value">${pr.weight_kg} kg × ${pr.reps}</span>
           </div>`).join('')}
       </div>`;
