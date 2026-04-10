@@ -1,8 +1,14 @@
 import { listWorkouts } from './db.js';
+import { buildExerciseHistory } from './workout-stats.js';
 
 export async function renderProgress(container) {
   container.innerHTML = '<div class="loading">Loading...</div>';
   const workouts = await listWorkouts();
+
+  // Collect all unique exercise names from history, sorted alphabetically
+  const exerciseNames = [...new Set(
+    workouts.flatMap(w => w.exercises.map(ex => ex.exercise_name))
+  )].sort((a, b) => a.localeCompare(b));
 
   const now = Date.now();
   const nowDate = new Date();
@@ -42,6 +48,22 @@ export async function renderProgress(container) {
 
   let html = `<div class="screen-header"><h1>Progress</h1></div>`;
 
+  // Exercise progress chart card
+  const optionsHtml = exerciseNames.map(n =>
+    `<option value="${n}">${n}</option>`
+  ).join('');
+  html += `
+    <div class="card" id="chart-card">
+      <div style="font-size:0.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Exercise Progress</div>
+      <select class="chart-select" id="chart-exercise-select">
+        <option value="">Select exercise...</option>
+        ${optionsHtml}
+      </select>
+      <div class="chart-wrap" id="chart-wrap">
+        <div class="empty" style="padding:40px 0;font-size:14px;">Select an exercise to see progress</div>
+      </div>
+    </div>`;
+
   html += `
     <div class="card">
       <div style="font-size:0.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Stats</div>
@@ -69,5 +91,96 @@ export async function renderProgress(container) {
 
   container.innerHTML = html;
 
+  const select = container.querySelector('#chart-exercise-select');
+  const chartWrap = container.querySelector('#chart-wrap');
+  if (select) {
+    select.addEventListener('change', () => {
+      const name = select.value;
+      if (!name) {
+        chartWrap.innerHTML = '<div class="empty" style="padding:40px 0;font-size:14px;">Select an exercise to see progress</div>';
+        return;
+      }
+      const history = buildExerciseHistory(workouts, name);
+      renderChart(chartWrap, history);
+    });
+  }
+
   window.addEventListener('sync-complete', () => renderProgress(container), { once: true });
+}
+
+function renderChart(wrap, history) {
+  if (history.length === 0) {
+    wrap.innerHTML = '<div class="empty" style="padding:40px 0;font-size:14px;">No data for this exercise</div>';
+    return;
+  }
+
+  const W = wrap.clientWidth || 300;
+  const H = 220;
+  const padTop = 32, padBottom = 24, padLeft = 40, padRight = 16;
+  const chartW = W - padLeft - padRight;
+  const chartH = H - padTop - padBottom;
+
+  const weights = history.map(p => p.weight_kg);
+  const minW = Math.min(...weights);
+  const maxW = Math.max(...weights);
+  const rawRange = maxW - minW || 1;
+  const yPad = Math.max(2.5, rawRange * 0.05);
+  const yMin = minW - yPad;
+  const yMax = maxW + yPad;
+  const yRange = yMax - yMin;
+
+  // Y axis gridlines (4 lines)
+  const gridCount = 4;
+  const gridLines = Array.from({ length: gridCount + 1 }, (_, i) => {
+    const val = yMin + (yRange / gridCount) * i;
+    const y = padTop + chartH - (val - yMin) / yRange * chartH;
+    return { val: Math.round(val * 10) / 10, y };
+  });
+
+  // X positions
+  const xPos = i => padLeft + (history.length === 1 ? chartW / 2 : i / (history.length - 1) * chartW);
+  const yPos = w => padTop + chartH - (w - yMin) / yRange * chartH;
+
+  // X axis labels: show all if ≤6, else first + last + evenly sampled
+  const labelIndices = new Set();
+  if (history.length <= 6) {
+    history.forEach((_, i) => labelIndices.add(i));
+  } else {
+    labelIndices.add(0);
+    labelIndices.add(history.length - 1);
+    const step = Math.floor((history.length - 1) / 4);
+    for (let i = step; i < history.length - 1; i += step) labelIndices.add(i);
+  }
+
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const fmtDate = ts => { const d = new Date(ts); return `${months[d.getMonth()]} ${d.getDate()}`; };
+
+  // Build SVG
+  let svg = `<svg class="chart-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+
+  // Gridlines + Y labels
+  gridLines.forEach(({ val, y }) => {
+    svg += `<line x1="${padLeft}" y1="${y}" x2="${W - padRight}" y2="${y}" stroke="var(--surface2)" stroke-width="1"/>`;
+    svg += `<text x="${padLeft - 4}" y="${y + 4}" text-anchor="end" font-size="10" fill="var(--text-muted)">${val}</text>`;
+  });
+
+  // Line
+  if (history.length > 1) {
+    const points = history.map((p, i) => `${xPos(i)},${yPos(p.weight_kg)}`).join(' ');
+    svg += `<polyline points="${points}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/>`;
+  }
+
+  // Dots + weight labels + x labels
+  history.forEach((p, i) => {
+    const x = xPos(i);
+    const y = yPos(p.weight_kg);
+    svg += `<circle cx="${x}" cy="${y}" r="4" fill="var(--accent)"/>`;
+    svg += `<text x="${x}" y="${y - 10}" text-anchor="middle" font-size="10" fill="var(--text)">${p.weight_kg}kg</text>`;
+    if (labelIndices.has(i)) {
+      svg += `<text x="${x}" y="${H - 4}" text-anchor="middle" font-size="10" fill="var(--text-muted)">${fmtDate(p.date)}</text>`;
+    }
+  });
+
+  svg += `</svg>`;
+  wrap.innerHTML = svg;
 }
