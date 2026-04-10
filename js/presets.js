@@ -2,7 +2,8 @@ const STORAGE_KEY = 'exercisePresets';
 
 export function getPresets() {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }
