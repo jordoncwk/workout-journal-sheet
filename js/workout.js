@@ -60,8 +60,9 @@ function render(container, state, exerciseStats = {}) {
     html += `
       <div class="ex-card" data-ei="${ei}">
         <div class="ex-card-header" data-ei="${ei}">
+          <span class="ex-arrow">${isCollapsed ? '▸' : '▾'}</span>
           <div class="ex-card-title">
-            <span class="ex-card-name">${isCollapsed ? '▸' : '▾'} ${ex.exercise_name}</span>
+            <span class="ex-card-name">${ex.exercise_name}</span>
             ${statsHtml}
           </div>
           <button class="btn btn-ghost btn-sm add-set-btn" data-ei="${ei}">+ Set</button>

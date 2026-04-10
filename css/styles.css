@@ -118,6 +118,7 @@ select {
   border: 1px solid var(--surface2);
 }
 .ex-card-header { padding: 14px 16px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.ex-arrow { font-size: 1rem; color: var(--text-muted); flex-shrink: 0; }
 .ex-card-title { display: flex; flex-direction: column; flex: 1; gap: 2px; }
 .ex-card-name { font-size: 1rem; font-weight: 600; }
 .ex-stats { font-size: 11px; color: var(--text-muted); }
