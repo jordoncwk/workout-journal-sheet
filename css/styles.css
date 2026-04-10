@@ -120,7 +120,7 @@ select {
 .ex-card-header { padding: 14px 16px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
 .ex-card-title { display: flex; flex-direction: column; flex: 1; gap: 2px; }
 .ex-card-name { font-size: 1rem; font-weight: 600; }
-.ex-stats { font-size: 11px; color: var(--text-muted); padding-left: 20px; }
+.ex-stats { font-size: 11px; color: var(--text-muted); }
 .best-badge {
   font-size: 0.75rem; color: var(--text-muted);
   background: var(--surface2); border-radius: 8px; padding: 3px 8px;
