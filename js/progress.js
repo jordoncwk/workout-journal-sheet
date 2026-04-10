@@ -1,6 +1,8 @@
 import { listWorkouts } from './db.js';
 import { buildExerciseHistory } from './workout-stats.js';
 
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
 export async function renderProgress(container) {
   container.innerHTML = '<div class="loading">Loading...</div>';
   const workouts = await listWorkouts();
@@ -50,7 +52,7 @@ export async function renderProgress(container) {
 
   // Exercise progress chart card
   const optionsHtml = exerciseNames.map(n =>
-    `<option value="${n}">${n}</option>`
+    `<option value="${esc(n)}">${esc(n)}</option>`
   ).join('');
   html += `
     <div class="card" id="chart-card">
@@ -175,7 +177,8 @@ function renderChart(wrap, history) {
     const x = xPos(i);
     const y = yPos(p.weight_kg);
     svg += `<circle cx="${x}" cy="${y}" r="4" fill="var(--accent)"/>`;
-    svg += `<text x="${x}" y="${y - 10}" text-anchor="middle" font-size="10" fill="var(--text)">${p.weight_kg}kg</text>`;
+    const labelY = Math.max(padTop - 2, y - 10);
+    svg += `<text x="${x}" y="${labelY}" text-anchor="middle" font-size="10" fill="var(--text)">${p.weight_kg}kg</text>`;
     if (labelIndices.has(i)) {
       svg += `<text x="${x}" y="${H - 4}" text-anchor="middle" font-size="10" fill="var(--text-muted)">${fmtDate(p.date)}</text>`;
     }
