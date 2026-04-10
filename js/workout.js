@@ -3,6 +3,7 @@ import { flushQueue } from './sync.js';
 import { navigate } from './router.js';
 import { formatRestTime } from './timer-utils.js';
 import { buildExerciseStats } from './workout-stats.js';
+import { attachAutocomplete } from './presets.js';
 
 let timerInterval = null;
 const restTimerState = { interval: null, endTime: null, audioCtx: null };
@@ -42,9 +43,10 @@ function render(container, state, exerciseStats = {}) {
       <span class="timer-badge" id="workout-timer">${elapsed}</span>
     </div>`;
 
-  // Add exercise button (free-form)
-  html += `<div style="padding:8px 12px 0; display:flex; gap:8px; flex-wrap:wrap;">
-    <button class="btn btn-ghost btn-sm" id="add-ex-btn">+ Add exercise</button>
+  // Add exercise inline form (replaces prompt)
+  html += `<div style="padding:8px 12px 0; display:flex; gap:8px; align-items:center;">
+    <input type="text" id="add-ex-input" placeholder="Exercise name..." style="flex:1;min-width:0;padding:10px;font-size:15px;">
+    <button class="btn btn-ghost btn-sm" id="add-ex-btn" style="white-space:nowrap;">+ Add</button>
   </div>`;
 
   state.exercises.forEach((ex, ei) => {
@@ -192,14 +194,20 @@ function render(container, state, exerciseStats = {}) {
     });
   });
 
-  // Add exercise (free-form)
-  container.querySelector('#add-ex-btn').addEventListener('click', () => {
-    const name = prompt('Exercise name:');
-    if (!name || !name.trim()) return;
-    state.exercises.push({ exercise_name: name.trim(), sets: [{ weight_kg: '', reps: '' }] });
+  // Add exercise inline form
+  function doAddExercise() {
+    const input = container.querySelector('#add-ex-input');
+    const name = input.value.trim();
+    if (!name) return;
+    state.exercises.push({ exercise_name: name, sets: [{ weight_kg: '', reps: '' }] });
     saveState(state);
     render(container, state, exerciseStats);
+  }
+  container.querySelector('#add-ex-btn').addEventListener('click', doAddExercise);
+  container.querySelector('#add-ex-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doAddExercise();
   });
+  attachAutocomplete(container.querySelector('#add-ex-input'));
 
   // Discard
   container.querySelector('#discard-btn').addEventListener('click', () => {
