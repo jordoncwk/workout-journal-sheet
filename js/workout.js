@@ -46,6 +46,7 @@ function render(container, state, exerciseStats = {}) {
       <button class="back-btn" id="discard-btn">✕</button>
       <h1>${state.templateName || 'Free-form'}</h1>
       <span class="timer-badge" id="workout-timer">${elapsed}</span>
+      <button class="rest-header-btn" id="rest-timer-btn">Rest 2:00</button>
     </div>`;
 
   // Add exercise inline form (replaces prompt)
@@ -93,18 +94,20 @@ function render(container, state, exerciseStats = {}) {
   });
 
   html += `
-    <div style="padding:16px; display:flex; flex-direction:column; gap:10px;">
-      <button class="btn btn-ghost btn-full" id="rest-timer-btn">Rest 2:00</button>
+    <div style="padding:16px;">
       <button class="btn btn-primary btn-full" id="finish-btn">Finish Workout</button>
     </div>`;
 
   container.innerHTML = html;
 
-  // Restore rest button label if countdown is running
+  // Restore rest button state if countdown is running
   if (restTimerState.interval && restTimerState.endTime) {
     const remaining = Math.ceil((restTimerState.endTime - Date.now()) / 1000);
     const restBtn = container.querySelector('#rest-timer-btn');
-    if (restBtn && remaining > 0) restBtn.textContent = `Rest ${formatRestTime(remaining)}`;
+    if (restBtn && remaining > 0) {
+      restBtn.textContent = `✕ ${formatRestTime(remaining)}`;
+      restBtn.classList.add('rest-active');
+    }
   }
 
   // Elapsed workout timer
@@ -124,6 +127,7 @@ function render(container, state, exerciseStats = {}) {
       restTimerState.endTime = null;
       if (restTimerState.audioCtx) { restTimerState.audioCtx.close(); restTimerState.audioCtx = null; }
       restBtn.textContent = 'Rest 2:00';
+      restBtn.classList.remove('rest-active');
     } else {
       // Start 2-minute countdown using end timestamp so background throttling doesn't drift
       restTimerState.endTime = Date.now() + 120 * 1000;
@@ -132,7 +136,8 @@ function render(container, state, exerciseStats = {}) {
       } catch (e) {
         console.warn('AudioContext unavailable:', e);
       }
-      restBtn.textContent = `Rest ${formatRestTime(120)}`;
+      restBtn.textContent = `✕ ${formatRestTime(120)}`;
+      restBtn.classList.add('rest-active');
       restTimerState.interval = setInterval(() => {
         const remaining = Math.ceil((restTimerState.endTime - Date.now()) / 1000);
         const btn = document.getElementById('rest-timer-btn');
@@ -142,6 +147,7 @@ function render(container, state, exerciseStats = {}) {
           restTimerState.interval = null;
           restTimerState.endTime = null;
           btn.textContent = 'Rest 2:00';
+          btn.classList.remove('rest-active');
           if (navigator.vibrate) navigator.vibrate(500);
           if (restTimerState.audioCtx) {
             const osc = restTimerState.audioCtx.createOscillator();
@@ -160,7 +166,7 @@ function render(container, state, exerciseStats = {}) {
           btn.classList.add('rest-timer-flash');
           btn.addEventListener('animationend', () => btn.classList.remove('rest-timer-flash'), { once: true });
         } else {
-          btn.textContent = `Rest ${formatRestTime(remaining)}`;
+          btn.textContent = `✕ ${formatRestTime(remaining)}`;
         }
       }, 1000);
     }
