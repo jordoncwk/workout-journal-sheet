@@ -29,9 +29,11 @@ export async function renderHistoryDetail(container, params) {
       <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">${date} · ${duration}</div>`;
 
   w.exercises.forEach(ex => {
+    const noteHtml = ex.note ? `<div class="ex-note">${ex.note}</div>` : '';
     html += `
       <div class="ex-group">
         <div class="ex-group-name">${ex.exercise_name}</div>
+        ${noteHtml}
         ${ex.sets.map((s, i) => `<div class="set-line">Set ${i + 1}: ${s.weight_kg} kg × ${s.reps} reps</div>`).join('')}
       </div>`;
   });
