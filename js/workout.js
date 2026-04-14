@@ -308,6 +308,8 @@ function stopTimer() {
   restTimerState.interval = null;
   restTimerState.endTime = null;
   if (restTimerState.audioCtx) { restTimerState.audioCtx.close(); restTimerState.audioCtx = null; }
+  const btn = document.getElementById('rest-timer-btn');
+  if (btn) { btn.textContent = 'Rest 2:00'; btn.classList.remove('rest-active'); }
   collapsedExercises.clear();
   openNotes.clear();
 }
