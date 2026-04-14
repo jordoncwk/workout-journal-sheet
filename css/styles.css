@@ -147,6 +147,22 @@ select {
   100% { background: transparent; }
 }
 .rest-timer-flash { animation: rest-timer-flash 1s ease-out; }
+.rest-header-btn {
+  background: rgba(0, 188, 212, 0.18);
+  color: var(--accent);
+  border: none;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 10px;
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.rest-header-btn.rest-active {
+  background: #c0392b;
+  color: #fff;
+}
 
 /* ── History ── */
 .history-card {
