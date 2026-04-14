@@ -10,6 +10,10 @@ const restTimerState = { interval: null, endTime: null, audioCtx: null };
 const collapsedExercises = new Set();
 const openNotes = new Set();
 
+function escapeHtml(str) {
+  return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 export async function renderWorkout(container) {
   const state = getState();
   if (!state) { navigate('#home'); return; }
@@ -73,7 +77,7 @@ function render(container, state, exerciseStats = {}) {
           <button class="btn btn-ghost btn-sm add-set-btn" data-ei="${ei}">+ Set</button>
         </div>`;
     const noteVisible = openNotes.has(ei);
-    html += `<textarea class="ex-note-textarea" data-note-area-ei="${ei}" placeholder="Notes..."${noteVisible ? ' style="display:block"' : ''}>${ex.note || ''}</textarea>`;
+    html += `<textarea class="ex-note-textarea" data-note-area-ei="${ei}" placeholder="Notes..."${noteVisible ? ' style="display:block"' : ''}>${escapeHtml(ex.note)}</textarea>`;
     if (!isCollapsed) {
       ex.sets.forEach((s, si) => {
         const filled = s.weight_kg !== '' && s.reps !== '' ? ' filled' : '';
