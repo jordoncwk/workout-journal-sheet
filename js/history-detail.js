@@ -2,6 +2,10 @@ import { getWorkout, deleteWorkout, addToSyncQueue } from './db.js';
 import { flushQueue } from './sync.js';
 import { navigate } from './router.js';
 
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 export async function renderHistoryDetail(container, params) {
   const id = params.get('id');
   container.innerHTML = '<div class="loading">Loading...</div>';
@@ -29,7 +33,7 @@ export async function renderHistoryDetail(container, params) {
       <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">${date} · ${duration}</div>`;
 
   w.exercises.forEach(ex => {
-    const noteHtml = ex.note ? `<div class="ex-note">${ex.note}</div>` : '';
+    const noteHtml = ex.note && ex.note.trim() ? `<div class="ex-note">${escapeHtml(ex.note.trim())}</div>` : '';
     html += `
       <div class="ex-group">
         <div class="ex-group-name">${ex.exercise_name}</div>
