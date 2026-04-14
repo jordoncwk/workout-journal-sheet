@@ -148,20 +148,16 @@ select {
 }
 .rest-timer-flash { animation: rest-timer-flash 1s ease-out; }
 .rest-header-btn {
-  background: rgba(0, 188, 212, 0.18);
-  color: var(--accent);
-  border: none;
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 10px;
-  white-space: nowrap;
-  cursor: pointer;
-  flex-shrink: 0;
+  font-size: 15px; font-variant-numeric: tabular-nums;
+  background: rgba(0,188,212,0.15); color: var(--accent);
+  padding: 4px 12px; border-radius: 16px; font-weight: 600;
+  border: 1px solid rgba(0,188,212,0.25);
+  white-space: nowrap; cursor: pointer; flex-shrink: 0;
 }
 .rest-header-btn.rest-active {
-  background: #c0392b;
-  color: #fff;
+  background: rgba(192,57,43,0.15);
+  color: #c0392b;
+  border-color: rgba(192,57,43,0.25);
 }
 
 /* ── History ── */
