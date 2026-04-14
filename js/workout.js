@@ -203,6 +203,37 @@ function render(container, state, exerciseStats = {}) {
     });
   });
 
+  // Note icon toggle
+  container.querySelectorAll('.note-icon').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const ei = +btn.dataset.noteEi;
+      if (openNotes.has(ei)) {
+        openNotes.delete(ei);
+      } else {
+        openNotes.add(ei);
+      }
+      const textarea = container.querySelector(`[data-note-area-ei="${ei}"]`);
+      if (textarea) {
+        textarea.style.display = openNotes.has(ei) ? 'block' : 'none';
+        if (openNotes.has(ei)) textarea.focus();
+      }
+    });
+  });
+
+  // Note textarea auto-save
+  container.querySelectorAll('.ex-note-textarea').forEach(textarea => {
+    textarea.addEventListener('input', () => {
+      const ei = +textarea.dataset.noteAreaEi;
+      state.exercises[ei].note = textarea.value;
+      saveState(state);
+      const icon = container.querySelector(`[data-note-ei="${ei}"]`);
+      if (icon) {
+        icon.classList.toggle('note-icon--active', textarea.value.length > 0);
+      }
+    });
+  });
+
   // Add exercise inline form
   function doAddExercise() {
     const input = container.querySelector('#add-ex-input');
