@@ -164,6 +164,10 @@ select {
 .ex-group { margin-bottom: 14px; }
 .ex-group-name { font-size: 0.95rem; font-weight: 600; margin-bottom: 6px; }
 .set-line { font-size: 0.88rem; color: var(--text-muted); padding: 2px 0; }
+.note-icon { background: none; border: none; font-size: 1rem; padding: 4px 6px; cursor: pointer; opacity: 0.4; line-height: 1; }
+.note-icon--active { opacity: 1; color: var(--accent); }
+.ex-note-textarea { display: none; width: 100%; box-sizing: border-box; padding: 8px 12px; font-size: 0.9rem; background: var(--surface); color: var(--text); border: none; border-top: 1px solid var(--surface2); resize: vertical; min-height: 56px; }
+.ex-note { font-style: italic; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 4px; }
 
 /* ── Templates ── */
 .template-list-card {
