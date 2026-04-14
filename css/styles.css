@@ -48,7 +48,7 @@ body {
 
 /* ── Screen header ── */
 .screen-header {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: center; gap: 8px;
   padding: 16px;
   background: var(--bg);
   position: sticky; top: 0; z-index: 10;
@@ -148,7 +148,7 @@ select {
 }
 .rest-timer-flash { animation: rest-timer-flash 1s ease-out; }
 .rest-header-btn {
-  font-size: 15px; font-variant-numeric: tabular-nums;
+  font-size: 15px; font-variant-numeric: tabular-nums; font-family: inherit;
   background: rgba(0,188,212,0.15); color: var(--accent);
   padding: 4px 12px; border-radius: 16px; font-weight: 600;
   border: 1px solid rgba(0,188,212,0.25);
