@@ -239,7 +239,7 @@ function render(container, state, exerciseStats = {}) {
     const input = container.querySelector('#add-ex-input');
     const name = input.value.trim();
     if (!name) return;
-    state.exercises.push({ exercise_name: name, sets: [{ weight_kg: '', reps: '' }] });
+    state.exercises.push({ exercise_name: name, sets: [{ weight_kg: '', reps: '' }], note: '' });
     saveState(state);
     render(container, state, exerciseStats);
   }
@@ -279,6 +279,7 @@ async function finishWorkout(state) {
         reps: parseInt(s.reps) || 0,
         logged: true,
       })),
+      note: ex.note || '',
     })).filter(ex => ex.sets.length > 0),
   };
 
@@ -302,6 +303,7 @@ function stopTimer() {
   restTimerState.endTime = null;
   if (restTimerState.audioCtx) { restTimerState.audioCtx.close(); restTimerState.audioCtx = null; }
   collapsedExercises.clear();
+  openNotes.clear();
 }
 
 function formatDuration(ms) {
