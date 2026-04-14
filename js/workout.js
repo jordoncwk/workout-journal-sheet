@@ -8,6 +8,7 @@ import { attachAutocomplete } from './presets.js';
 let timerInterval = null;
 const restTimerState = { interval: null, endTime: null, audioCtx: null };
 const collapsedExercises = new Set();
+const openNotes = new Set();
 
 export async function renderWorkout(container) {
   const state = getState();
@@ -59,6 +60,7 @@ function render(container, state, exerciseStats = {}) {
       const parts = [bestStr, lastStr].filter(Boolean);
       statsHtml = `<span class="ex-stats">${parts.join(' · ')}</span>`;
     }
+    const hasNote = ex.note && ex.note.length > 0;
     html += `
       <div class="ex-card" data-ei="${ei}">
         <div class="ex-card-header" data-ei="${ei}">
@@ -67,8 +69,11 @@ function render(container, state, exerciseStats = {}) {
             <span class="ex-card-name">${ex.exercise_name}</span>
             ${statsHtml}
           </div>
+          <button class="note-icon${hasNote ? ' note-icon--active' : ''}" data-note-ei="${ei}" title="Notes">📝</button>
           <button class="btn btn-ghost btn-sm add-set-btn" data-ei="${ei}">+ Set</button>
         </div>`;
+    const noteVisible = openNotes.has(ei);
+    html += `<textarea class="ex-note-textarea" data-note-area-ei="${ei}" placeholder="Notes..."${noteVisible ? ' style="display:block"' : ''}>${ex.note || ''}</textarea>`;
     if (!isCollapsed) {
       ex.sets.forEach((s, si) => {
         const filled = s.weight_kg !== '' && s.reps !== '' ? ' filled' : '';
